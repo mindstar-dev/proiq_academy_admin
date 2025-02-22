@@ -6,61 +6,118 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
-model Example {
-    id        String   @id @default(cuid())
+model Post {
+    id        Int      @id @default(autoincrement())
+    name      String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@index([name])
 }
 
-// Necessary for Next auth
-model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? // @db.Text
-    access_token      String? // @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? // @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@unique([provider, providerAccountId])
+model User{
+    id          String @id @default(uuid())
+    email       String @unique
+    name        String
+    password    String
+    userType    String
+    imageUrl    String
+    phoneNumber String
+    class       Class[]
+    centres     Centre[]
+}
+model Demo{
+    id String @id
 }
 
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Student{
+    studentId       String @id @default(uuid())
+    name            String
+    address         String
+    parentName      String
+    parentOccupation String
+    parentContactNumber1   String
+    parentContactNumber2 String?
+    idProof         String
+    idProofType         String
+    centreId        String
+    courseDuration  String
+    classDays String[]
+    classTiming String
+    courseName String
+    imageUrl    String
+    readdmission    Boolean
+    centre          Centre @relation(fields: [centreId], references: [id], onDelete: Cascade)
+    studentMappings StudentClass[]
+    attendance      Attendance[]
+    payments        Payment[]
+    createdAt DateTime @default(now()) @db.Timestamptz(5)
+    updatedAt          DateTime  @updatedAt @db.Timestamptz(5)
+}
+model StudentClass {
+    studentId String
+    classId   String
+    student   Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+    class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+    @@id([studentId, classId]) // Composite primary key
+}
+model Class{
+    id              String @id @default(uuid()) // Add an explicit ID
+    subject         String
+    centreId        String
+    facultyId       String
+    facultyName     String
+    faculty         User @relation(fields: [facultyId], references: [id])
+    centre          Centre @relation(fields: [centreId], references: [id], onDelete: Cascade)
+    studentMappings StudentClass[]
+    attendance      Attendance[]
+}
+model Centre {
+    id          String @id @default(uuid())  // Unique identifier for the centre
+    name        String @unique// Name of the institute
+    location    String // Address or location details
+    payments    Payment[]
+    students    Student[]
+    classes     Class[]
+    attendance  Attendance[]
+    faculties   User[]
 }
 
-model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
+model Attendance {
+    id        String   @id @default(uuid()) // Unique identifier
+    studentId String
+    classId   String
+    centreId  String
+    date      DateTime // Date of the class
+    status    AttendanceStatus // Enum for attendance status
+    student   Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+    class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+    centre    Centre   @relation(fields: [centreId], references: [id], onDelete: Cascade)
+    @@unique([studentId, classId, date]) // A student can only have one attendance record per class per date
 }
-
-model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
-
-    @@unique([identifier, token])
+model Payment {
+    id          String   @id @default(uuid()) 
+    studentId   String
+    centreId    String
+    amountPaid  Float    // Amount paid by the student
+    paymentDate DateTime // Date of payment
+    status      PaymentStatus // Enum: Paid, Pending, Partial
+    student     Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+    centre      Centre   @relation(fields: [centreId], references: [id], onDelete: Cascade)
+    @@unique([studentId, paymentDate]) // A student can only have one payment record per date
+}
+enum AttendanceStatus {
+    PRESENT
+    ABSENT
+    LATE
+    EXCUSED
+}
+enum PaymentStatus {
+    PAID
+    PENDING
+    PARTIAL
 }
