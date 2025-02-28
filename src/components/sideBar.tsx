@@ -12,9 +12,12 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/router";
 const SideBar: React.FunctionComponent = () => {
   const pathName = usePathname();
+  const router = useRouter();
   console.log(pathName);
+
   return (
     <div className="font-poppins hidden min-h-screen w-[270px] min-w-[270px] flex-col bg-[#202B5D] text-white lg:flex">
       <div className="container flex h-full flex-col items-center">
@@ -22,7 +25,10 @@ const SideBar: React.FunctionComponent = () => {
           <Image
             src={proiqLogoWhite1 as StaticImageData}
             alt="Pro IQ Academy"
-            className=""
+            className="cursor-pointer"
+            onClick={() => {
+              router.push("/dashboard");
+            }}
           />
         </div>
         <nav className="mt-5 flex h-full w-full flex-col justify-between">
@@ -48,9 +54,7 @@ const SideBar: React.FunctionComponent = () => {
               <Link
                 href="create-centre"
                 className={`relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999] ${
-                  pathName === "/create-centre"
-                    ? "rounded-full bg-[#FABA09]"
-                    : ""
+                  pathName.includes("centre") ? "rounded-full bg-[#FABA09]" : ""
                 }`}
               >
                 <Image
@@ -65,7 +69,7 @@ const SideBar: React.FunctionComponent = () => {
               <Link
                 href="create-course"
                 className={`relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999] ${
-                  pathName === "/create-course"
+                  pathName?.includes("course")
                     ? "rounded-full bg-[#FABA09]"
                     : ""
                 }`}
@@ -80,9 +84,9 @@ const SideBar: React.FunctionComponent = () => {
             </li>
             <li className="pb-2">
               <Link
-                href="/attendance"
+                href="attendance"
                 className={`relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999] ${
-                  pathName?.startsWith("/attendance")
+                  pathName?.includes("attendance")
                     ? "rounded-full bg-[#FABA09]"
                     : ""
                 }`}
@@ -99,8 +103,7 @@ const SideBar: React.FunctionComponent = () => {
               <Link
                 href="payment-collection"
                 className={`relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999] ${
-                  pathName === "/payment-collection" ||
-                  pathName === "/payment-status"
+                  pathName.includes("payment")
                     ? "rounded-full bg-[#FABA09]"
                     : ""
                 }`}
@@ -115,7 +118,7 @@ const SideBar: React.FunctionComponent = () => {
             </li>
             <li className="pb-2">
               <Link
-                href="#"
+                href="update-student"
                 className="relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999]"
               >
                 <Image
@@ -131,8 +134,9 @@ const SideBar: React.FunctionComponent = () => {
             <li className="pb-4">
               <button
                 className="relative flex w-full gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999]"
-                onClick={() => {
-                  signOut({ redirect: true });
+                onClick={async () => {
+                  await signOut({ redirect: false });
+                  router.push("/");
                 }}
               >
                 <Image src={signOutImg} alt="Sign-Out Logo" className="w-5" />

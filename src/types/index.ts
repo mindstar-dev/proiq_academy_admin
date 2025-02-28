@@ -1,3 +1,5 @@
+import { $Enums } from "@prisma/client";
+import { a } from "framer-motion/dist/types.d-6pKw1mTI";
 import { z } from "zod";
 
 export const PostInput = z.object({
@@ -21,6 +23,7 @@ export const DemoInput = z.object({
 });
 
 export const StudentInput = z.object({
+  studentId: z.string().optional(),
   name: z.string({ required_error: "Name can't be empty" }),
   address: z.string({ required_error: "Address can't be empty" }),
   parentName: z.string({ required_error: "Parent name can't be empty" }),
@@ -41,7 +44,9 @@ export const StudentInput = z.object({
     required_error: "Class days can't be empty",
   }),
   classTiming: z.string({ required_error: "Class timing can't be empty" }),
-  courseName: z.string({ required_error: "Course name can't be empty" }),
+  courseNames: z.array(z.string(), {
+    required_error: "Course name can't be empty",
+  }),
   readdmission: z.boolean().optional(),
   imageUrl: z.string({ required_error: "Image URL can't be empty" }),
 });
@@ -66,22 +71,47 @@ export const CentreInput = z.object({
   location: z.string({ required_error: "Location can't be empty" }),
 });
 
-export const AttendanceInput = z.object({
-  studentId: z.string({ required_error: "Student ID can't be empty" }),
-  classId: z.string({ required_error: "Class ID can't be empty" }),
+export const AttendanceInput = z.array(
+  z.object({
+    studentId: z.string({ required_error: "Student ID can't be empty" }),
+    courseId: z.string({ required_error: "Course ID can't be empty" }),
+    centreId: z.string({ required_error: "Centre ID can't be empty" }),
+    date: z.date({ required_error: "Date can't be empty" }),
+    status: z.nativeEnum($Enums.AttendanceStatus, {
+      required_error: "Attendance status can't be empty",
+    }),
+    centre: z.object({
+      name: z.string({ required_error: "Centre name can't be empty" }),
+    }),
+    course: z.object({
+      name: z.string().nullable().optional(), // Matches `string | undefined`
+    }),
+    student: z.object({
+      name: z.string({ required_error: "Student name can't be empty" }),
+      parentName: z.string({ required_error: "Parent name can't be empty" }),
+    }),
+  })
+);
+export const GetAttendanceInput = z.object({
+  courseId: z.string({ required_error: "Class ID can't be empty" }),
   centreId: z.string({ required_error: "Centre ID can't be empty" }),
   date: z.date({ required_error: "Date can't be empty" }),
-  status: z.enum(["PRESENT", "ABSENT", "LATE", "EXCUSED"], {
-    required_error: "Attendance status can't be empty",
-  }),
 });
-
 export const PaymentInput = z.object({
   studentId: z.string({ required_error: "Student ID can't be empty" }),
   centreId: z.string({ required_error: "Centre ID can't be empty" }),
+  courseId: z.string({ required_error: "Course ID can't be empty" }),
   amountPaid: z.number({ required_error: "Amount paid can't be empty" }),
   paymentDate: z.date({ required_error: "Payment date can't be empty" }),
   status: z.enum(["PAID", "PENDING", "PARTIAL"], {
     required_error: "Payment status can't be empty",
   }),
+});
+export const MonthlyPaymentInput = z.object({
+  centreId: z.string({ required_error: "Centre ID can't be empty" }),
+  courseId: z.string({ required_error: "Course ID can't be empty" }),
+  studentId: z.string().optional(),
+  month: z
+    .string({ required_error: "Month can't be empty" })
+    .regex(/^\d{4}-\d{2}$/),
 });

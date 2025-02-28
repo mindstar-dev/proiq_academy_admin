@@ -57,7 +57,7 @@ const CustomDropdown: React.FunctionComponent<CustomDropdownProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 top-14 w-full rounded-md border bg-white shadow-md">
+        <div className="absolute left-0 top-14 z-10 w-full rounded-md border bg-white shadow-md">
           {values.map((value) => (
             <label
               key={value}

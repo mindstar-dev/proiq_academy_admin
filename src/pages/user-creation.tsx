@@ -39,8 +39,8 @@ const UserCreation: React.FunctionComponent = () => {
     isError,
     isSuccess,
     isLoading,
-  } = api.centre.getAll.useQuery();
-  if (status == "unauthenticated" || session?.user.role != "admin") {
+  } = api.centre.getAllNames.useQuery();
+  if (status == "unauthenticated" || session?.user.role != "Admin") {
     return (
       <ErrorScreen errorString="You dont have permission to access this screen" />
     );
@@ -112,6 +112,7 @@ const UserCreation: React.FunctionComponent = () => {
             setSelectedValues={(value) =>
               setFormData({ ...formData, centres: value })
             }
+            placeHolder="Select Centres"
             values={centres as []}
           />
           <input

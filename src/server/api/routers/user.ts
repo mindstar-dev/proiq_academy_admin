@@ -12,7 +12,7 @@ export const userRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return ctx.prisma.user.create({
         data: {
-          email: input.email,
+          email: input.email.toLowerCase(),
           imageUrl: "demo url",
           name: input.name,
           password: input.password,

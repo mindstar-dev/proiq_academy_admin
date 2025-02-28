@@ -14,11 +14,12 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const TopBar: React.FunctionComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLImageElement>(null);
-
+  const { data: session, status } = useSession();
   // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -44,8 +45,8 @@ const TopBar: React.FunctionComponent = () => {
         </div>
         {/* name-designation block */}
         <div className="flex flex-col px-[1%] font-medium text-[#202B5D]">
-          <div className="text-lg">Name</div>
-          <div className="text-base">Designation</div>
+          <div className="text-lg">{session?.user.email}</div>
+          <div className="text-base">{session?.user.role}</div>
         </div>
         <div className="flex w-[27px] items-center lg:hidden">
           <Image

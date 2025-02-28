@@ -1,7 +1,9 @@
 import { Modal } from "@mui/material";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import React, { ChangeEventHandler, useState } from "react";
 import CustomDropdown from "~/components/customDropdown";
+import ErrorPopup from "~/components/errorPopup";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
 import SuccessPopup from "~/components/successPopup";
@@ -24,7 +26,7 @@ const CreateCourse: React.FunctionComponent = () => {
     isError,
     isSuccess,
     isLoading,
-  } = api.centre.getAll.useQuery();
+  } = api.centre.getAllNames.useQuery();
   const {
     data: users,
     isError: isUsersError,
@@ -60,7 +62,7 @@ const CreateCourse: React.FunctionComponent = () => {
     },
   });
 
-  if (status == "unauthenticated" || session?.user.role != "admin") {
+  if (status == "unauthenticated" || session?.user.role != "Admin") {
     return (
       <ErrorScreen errorString="You dont have permission to access this screen" />
     );
@@ -68,10 +70,10 @@ const CreateCourse: React.FunctionComponent = () => {
   if (status == "loading" || isLoading || isUsersLoading) {
     return <LoadingScreen />;
   }
-  if (errorString != "" || isError || isUsersError) {
+  if (isError || isUsersError) {
     return (
       <ErrorScreen
-        errorString={errorString}
+        errorString="Error Occured"
         onClick={() => {
           setErrorString("");
         }}
@@ -84,12 +86,17 @@ const CreateCourse: React.FunctionComponent = () => {
         onSubmit={handleSubmit}
         className="flex w-full flex-col justify-start gap-y-7"
       >
-        <div className="flex gap-x-4 self-center px-[10%] pt-7">
-          <h1 className="self-center py-7 text-3xl">
+        <div className="relative mt-4 flex w-full flex-row items-center justify-end px-[5%] py-7 lg:flex-col lg:px-[10%]">
+          <h1 className=" text-3xl md:absolute md:left-1/2 md:-translate-x-1/2">
             Course <span className="text-[#DCA200]"> Registration</span>
           </h1>
+          <Link
+            className="rounded-full bg-[#FCD56C] px-4 py-2 text-[#202B5D] shadow-md hover:bg-[#FABA09] lg:self-end"
+            href="course-list"
+          >
+            View All Courses
+          </Link>
         </div>
-
         <div className="grid w-full max-w-[90%] grid-cols-1 self-center sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 lg:gap-x-[10%]">
           <input
             name="name"
@@ -150,7 +157,23 @@ const CreateCourse: React.FunctionComponent = () => {
           onClick={() => {
             setIsSuccess(false);
           }}
-          message="Centre created succesfully"
+          message="Course registered succesfully"
+        />
+      </Modal>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={errorString.length > 0}
+        onClose={() => {
+          setErrorString("");
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <ErrorPopup
+          onClick={() => {
+            setErrorString("");
+          }}
+          message={errorString}
         />
       </Modal>
     </MainPageTemplate>

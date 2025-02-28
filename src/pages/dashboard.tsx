@@ -4,12 +4,21 @@ import Image from "next/image";
 import { oip } from "public";
 import { useSession } from "next-auth/react";
 import { MainPageTemplate } from "~/templates";
+import Link from "next/link";
+import ErrorScreen from "~/components/errorScreen";
+import LoadingScreen from "~/components/loadingScreen";
 
 export default function StudentDashboard() {
   const { data: session, status } = useSession();
-  console.log("role", session?.user.role);
-  console.log("session", session);
-  console.log("status", status);
+
+  if (status == "unauthenticated") {
+    return (
+      <ErrorScreen errorString="You dont have permission to access this screen" />
+    );
+  }
+  if (status == "loading") {
+    return <LoadingScreen />;
+  }
 
   return (
     <MainPageTemplate>
@@ -49,18 +58,18 @@ export default function StudentDashboard() {
             </div>
           </div>
           <div className="font-poppins mt-5 flex w-full flex-col justify-between gap-y-3 font-medium text-[#202B5D] sm:flex-row">
-            <button
+            <Link
               className="rounded-[15px] bg-[#FABA0999] px-[6%] py-[1.5%] text-[18px] outline-none hover:bg-[#b0944b] hover:outline-none"
-              type="button"
+              href="student"
             >
               All Students
-            </button>
-            <button
+            </Link>
+            <Link
               className="rounded-[15px] bg-[#FABA0999] px-[6%] py-[1.5%] text-[18px] outline-none hover:bg-[#b0944b] hover:outline-none"
-              type="button"
+              href="student-registration"
             >
               Add New Student
-            </button>
+            </Link>
           </div>
         </div>
       </div>

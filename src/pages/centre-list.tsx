@@ -2,6 +2,8 @@ import { Modal } from "@mui/material";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { ChangeEventHandler, useState } from "react";
+import CentreTable from "~/components/centreTable";
+import CourseTable from "~/components/courseTable";
 import CustomDropdown from "~/components/customDropdown";
 import ErrorPopup from "~/components/errorPopup";
 import ErrorScreen from "~/components/errorScreen";
@@ -10,14 +12,15 @@ import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 interface CentreForm {
-  name: string;
-  location: string;
+  centreNames: string[];
 }
-const CreateCentre: React.FunctionComponent = () => {
+const CentreList: React.FunctionComponent = () => {
   const [formData, setFormData] = useState<CentreForm>({} as CentreForm);
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
   const { status, data: session } = useSession();
+
+  const { data: centres, isError, isLoading } = api.centre.getAll.useQuery();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -25,66 +28,33 @@ const CreateCentre: React.FunctionComponent = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    createCentre.mutate(formData);
-  };
-
-  const createCentre = api.centre.create.useMutation({
-    onError(error, variables, context) {
-      setErrorString(error.message);
-    },
-    onSuccess(data, variables, context) {
-      setIsSuccess(true);
-    },
-  });
-
   if (status == "unauthenticated" || session?.user.role != "Admin") {
     return (
       <ErrorScreen errorString="You dont have permission to access this screen" />
     );
   }
-  if (status == "loading") {
+  if (status == "loading" || isLoading || isError) {
     return <LoadingScreen />;
   }
 
   return (
     <MainPageTemplate>
-      <form
-        onSubmit={handleSubmit}
-        className="flex w-full flex-col justify-start gap-y-7"
-      >
+      <div className="flex w-full flex-col items-center justify-start gap-y-7">
         <div className="relative mt-4 flex w-full flex-row items-center justify-end px-[5%] py-7 lg:flex-col lg:px-[10%]">
           <h1 className=" text-3xl md:absolute md:left-1/2 md:-translate-x-1/2">
-            Centre <span className="text-[#DCA200]"> Registration</span>
+            Centre <span className="text-[#DCA200]"> List</span>
           </h1>
           <Link
             className="rounded-full bg-[#FCD56C] px-4 py-2 text-[#202B5D] shadow-md hover:bg-[#FABA09] lg:self-end"
-            href="centre-list"
+            href="create-centre"
           >
-            View All Centres
+            Create Centre
           </Link>
         </div>
 
-        <div className="grid w-full max-w-[90%] grid-cols-1 self-center sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 lg:gap-x-[10%]">
-          <input
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Full Name"
-            className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:col-span-2 lg:justify-self-end"
-          />
-
-          <input
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            placeholder="Full Address"
-            className="col-span-1 h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:col-span-2 lg:justify-self-end"
-          />
+        <div className="w-4/5">
+          <CentreTable centres={centres} />
         </div>
-
         <div className="flex gap-x-6 self-center justify-self-center pb-7">
           <button
             type="button"
@@ -93,14 +63,8 @@ const CreateCentre: React.FunctionComponent = () => {
           >
             Cancel
           </button>
-          <button
-            type="submit"
-            className="rounded bg-[#DCA200] px-8 py-3 text-white"
-          >
-            Save
-          </button>
         </div>
-      </form>
+      </div>
       <Modal
         aria-labelledby="unstyled-modal-title"
         aria-describedby="unstyled-modal-description"
@@ -117,22 +81,7 @@ const CreateCentre: React.FunctionComponent = () => {
           message="Centre created succesfully"
         />
       </Modal>
-      <Modal
-        aria-labelledby="unstyled-modal-title"
-        aria-describedby="unstyled-modal-description"
-        open={isScuccess}
-        onClose={() => {
-          setIsSuccess(false);
-        }}
-        className="flex h-full w-full items-center justify-center"
-      >
-        <SuccessPopup
-          onClick={() => {
-            setIsSuccess(false);
-          }}
-          message="Center registered succesfully"
-        />
-      </Modal>
+
       <Modal
         aria-labelledby="unstyled-modal-title"
         aria-describedby="unstyled-modal-description"
@@ -152,4 +101,4 @@ const CreateCentre: React.FunctionComponent = () => {
     </MainPageTemplate>
   );
 };
-export default CreateCentre;
+export default CentreList;

@@ -1,8 +1,102 @@
+import { P } from "framer-motion/dist/types.d-6pKw1mTI";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import ErrorScreen from "~/components/errorScreen";
+import LoadingScreen from "~/components/loadingScreen";
 import { MainPageTemplate } from "~/templates";
-
+import { api } from "~/utils/api";
+interface PaymentCollectionForm {
+  studentId: string;
+  centreId: string;
+  courseId: string;
+  amountPaid: string;
+  paymentDate: string;
+  status: string;
+}
 const PaymentCollection: React.FunctionComponent = () => {
+  const [errorString, setErrorString] = useState("");
+  const [isScuccess, setIsSuccess] = useState(false);
+  const [formData, setFormData] = useState<PaymentCollectionForm>({
+    centreId: "",
+    courseId: "",
+  } as PaymentCollectionForm);
+  const { status, data: session } = useSession();
+
+  const {
+    data: centres,
+    isError,
+    isSuccess,
+    isLoading,
+  } = api.centre.getAllNamesByUserId.useQuery({
+    id: session?.user.id as string,
+    role: session?.user.role as string,
+  });
+  const {
+    data: courses,
+    isError: isCoursesError,
+    isLoading: isCoursesLoading,
+  } = api.course.getCourseByCentreId.useQuery({
+    centreId: formData.centreId,
+  });
+  const {
+    data: students,
+    isError: isStudentsError,
+    isSuccess: isStudentsSuccess,
+    isLoading: isStudentsLoading,
+  } = api.student.getByCentreAndCourseId.useQuery({
+    centreId: formData.centreId,
+    courseId: formData.courseId,
+  });
+  const createPayment = api.payment.create.useMutation({
+    onError(error, variables, context) {
+      setErrorString(error.message);
+    },
+    onSuccess(data, variables, context) {
+      setIsSuccess(true);
+    },
+  });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formattedData = {
+      ...formData,
+      amountPaid: Number(formData.amountPaid), // Ensure it's a number
+      paymentDate: new Date(formData.paymentDate), // Convert string to Date
+      status: formData.status as "PAID" | "PENDING" | "PARTIAL", // Type assertion
+    };
+    console.log("Form submitted:", formattedData);
+
+    createPayment.mutate(formattedData);
+  };
+  if (status == "unauthenticated") {
+    return (
+      <ErrorScreen errorString="You dont have permission to access this screen" />
+    );
+  }
+  if (
+    status == "loading" ||
+    isLoading ||
+    isCoursesLoading ||
+    isStudentsLoading
+  ) {
+    return <LoadingScreen />;
+  }
+  if (errorString != "" || isError || isCoursesError || isStudentsError) {
+    return (
+      <ErrorScreen
+        errorString={errorString}
+        onClick={() => {
+          setErrorString("");
+        }}
+      />
+    );
+  }
   return (
     <MainPageTemplate>
       <div className="flex w-full flex-col">
@@ -17,46 +111,119 @@ const PaymentCollection: React.FunctionComponent = () => {
             Payment Status
           </Link>
         </div>
-        <div className="grid w-4/5 grid-cols-1 gap-x-4 self-center py-7 lg:grid-cols-2">
-          <input
-            placeholder="Student Id"
-            className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
-          />
-          <input
-            placeholder="Student Name"
-            className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
-          />
+        <form
+          className="grid w-4/5 grid-cols-1 gap-x-4 self-center py-7 lg:grid-cols-2"
+          onSubmit={handleSubmit}
+        >
+          <select
+            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
+              formData.centreId == null || formData.centreId == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+            value={formData.centreId}
+            name="centreId"
+            onChange={handleChange}
+          >
+            <option selected disabled value="">
+              Select Centre
+            </option>
+            {centres?.map((centre, index) => {
+              return (
+                <option value={centre.id} className="text-black">
+                  {centre.name}
+                </option>
+              );
+            })}
+          </select>
+          <select
+            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
+              formData.courseId == null || formData.courseId == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+            value={formData.courseId}
+            name="courseId"
+            onChange={handleChange}
+          >
+            <option selected disabled value="">
+              Select Course
+            </option>
+            {courses.map((course, index) => {
+              return (
+                <option value={course.id} className="text-black">
+                  {course.name}
+                </option>
+              );
+            })}
+          </select>
+          <select
+            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
+              formData.studentId == null || formData.studentId == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+            value={formData.studentId}
+            name="studentId"
+            onChange={handleChange}
+          >
+            <option selected disabled>
+              Select Student
+            </option>
+            {students.map((student, index) => {
+              return (
+                <option value={student.studentId} className="text-black">
+                  Name: {student.name}, Parent: {student.parentName}
+                </option>
+              );
+            })}
+          </select>
+          <select
+            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
+              formData.status == null || formData.status == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+            name="status"
+            onChange={handleChange}
+          >
+            <option selected disabled>
+              Payment Type
+            </option>
+            <option value="PARTIAL" className="text-black">
+              PARTIAL
+            </option>
+            <option value="PAID" className="text-black">
+              PAID
+            </option>
+            <option value="PENDING" className="text-black">
+              PENDING
+            </option>
+          </select>
           <input
             placeholder="Select Date"
             type="datetime-local"
+            name="paymentDate"
+            onChange={handleChange}
             className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
           />
-          <select className="h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none">
-            <option selected disabled>
-              Select Subject
-            </option>
-            <option value="">Centre 1</option>
-            <option value="">Centre 2</option>
-            <option value="">Centre 3</option>
-          </select>
-          <select className="h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none">
-            <option selected disabled>
-              Select Centre
-            </option>
-            <option value="">Centre 1</option>
-            <option value="">Centre 2</option>
-            <option value="">Centre 3</option>
-          </select>
+
           <input
+            name="amountPaid"
+            onChange={handleChange}
             placeholder="Payable Amount"
+            type="number"
             className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
           />
-        </div>
-        <div className="flex w-4/5 flex-col justify-end gap-x-6 gap-y-4 self-center lg:w-4/5 lg:flex-row">
-          <button className="w-48 self-end rounded-lg bg-[#FCD56C] p-6 text-[#202B5D]">
-            Pay Fees
-          </button>
-        </div>
+          <div className="col-span-2 mt-4 flex w-full flex-col justify-end gap-x-6 gap-y-4 self-center lg:w-full lg:flex-row">
+            <button
+              className="w-48 self-end rounded-lg bg-[#FCD56C] p-6 text-[#202B5D]"
+              type="submit"
+            >
+              Pay Fees
+            </button>
+          </div>
+        </form>
       </div>
     </MainPageTemplate>
   );

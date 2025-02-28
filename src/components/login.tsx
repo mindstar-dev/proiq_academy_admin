@@ -19,7 +19,7 @@ const Login: React.FunctionComponent = () => {
   const router = useRouter();
 
   if (session) {
-    router.push("/student-dashboard");
+    router.push("/dashboard");
   }
 
   const handleChange = (
@@ -42,7 +42,7 @@ const Login: React.FunctionComponent = () => {
     if (result?.error) {
       setError("Invalid email or password");
     } else {
-      router.push("/student-dashboard");
+      router.push("/dashboard");
     }
   };
 
@@ -97,8 +97,8 @@ const Login: React.FunctionComponent = () => {
                       Choose User Type
                     </option>
 
-                    <option value="admin">Admin</option>
-                    <option value="teacher">Teacher</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Teacher">Teacher</option>
                   </select>
                 </div>
 

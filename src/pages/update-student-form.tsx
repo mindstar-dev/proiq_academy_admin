@@ -1,14 +1,15 @@
 import { Modal } from "@mui/material";
 import { useSession } from "next-auth/react";
-import React, { ChangeEventHandler, useState } from "react";
+import { useRouter } from "next/router";
+import React, { ChangeEventHandler, useEffect, useState } from "react";
 import CustomDropdown from "~/components/customDropdown";
-import ErrorPopup from "~/components/errorPopup";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
 import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 interface StudentForm {
+  studentId: string;
   name: string;
   address: string;
   parentName: string;
@@ -25,36 +26,21 @@ interface StudentForm {
   readdmission: boolean;
   imageUrl: string;
 }
-export default function StudentRegistration() {
-  const initialFormState: StudentForm = {
-    name: "",
-    address: "",
-    parentName: "",
-    parentOccupation: "",
-    parentContactNumber1: "",
-    parentContactNumber2: "",
-    idProof: "",
-    idProofType: "",
-    centreId: "",
-    courseNames: [],
-    courseDuration: "",
-    classDays: [],
-    classTiming: "",
-    readdmission: false,
-    imageUrl: "demo URl",
-  };
-  const [formData, setFormData] = useState<StudentForm>(initialFormState);
+export default function UpdateStudentForm() {
+  const [formData, setFormData] = useState<StudentForm>({} as StudentForm);
+  const router = useRouter();
+  const { studentId } = router.query ?? " ";
+  const {
+    data: studentData,
+    isError: isStudentDataError,
+    isLoading: isStudentDataLoading,
+  } = api.student.getById.useQuery({
+    studentId: studentId as string,
+  });
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    if (e.target.name === "centreId") {
-      setFormData({
-        ...formData,
-        [e.target.name]: e.target.value,
-        courseNames: [],
-      });
-      return;
-    }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   const [errorString, setErrorString] = useState("");
@@ -64,9 +50,8 @@ export default function StudentRegistration() {
     e.preventDefault();
     console.log("Form submitted:", formData);
     createStudent.mutate(formData);
-    // Add further form submission logic here (e.g., API call)
   };
-  const createStudent = api.student.create.useMutation({
+  const createStudent = api.student.update.useMutation({
     onError(error, variables, context) {
       setErrorString(error.message);
     },
@@ -88,9 +73,14 @@ export default function StudentRegistration() {
     data: courses,
     isError: isCoursesError,
     isLoading: isCoursesLoading,
-  } = api.course.getCourseNameByCentreId.useQuery({
-    centreId: formData.centreId,
+  } = api.course.getCourseByCentreName.useQuery({
+    centreName: formData?.centreId ?? "",
   });
+  useEffect(() => {
+    if (studentData) {
+      setFormData(studentData as StudentForm);
+    }
+  }, [studentData]);
   if (status == "unauthenticated") {
     return (
       <ErrorScreen errorString="You dont have permission to access this screen" />
@@ -99,7 +89,7 @@ export default function StudentRegistration() {
   if (isLoading || isCoursesLoading || status == "loading") {
     return <LoadingScreen />;
   }
-  if (isError || isCoursesError) {
+  if (errorString != "" || isError || isCoursesError) {
     return (
       <ErrorScreen
         errorString={errorString}
@@ -109,6 +99,7 @@ export default function StudentRegistration() {
       />
     );
   }
+
   return (
     <MainPageTemplate>
       <form
@@ -117,7 +108,7 @@ export default function StudentRegistration() {
       >
         <div className="flex gap-x-4 self-center px-[10%] pt-7">
           <h1 className="self-center py-7 text-3xl">
-            Student <span className="text-[#DCA200]"> Registration</span>
+            Update Student <span className="text-[#DCA200]"> Data</span>
           </h1>
           <div className="relative h-24 w-24 self-center">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-300"></div>
@@ -159,12 +150,12 @@ export default function StudentRegistration() {
             name="centreId"
             onChange={handleChange}
           >
-            <option selected value="">
+            <option selected value={""}>
               Select Centre
             </option>
             {centres?.map((centre, index) => {
               return (
-                <option value={centre.id} className="text-black">
+                <option value={centre.name} className="text-black">
                   {centre.name}
                 </option>
               );
@@ -190,7 +181,7 @@ export default function StudentRegistration() {
             onChange={handleChange}
             name="courseDuration"
           >
-            <option selected disabled value="">
+            <option selected value="">
               Select Course Duration
             </option>
             <option value="3 Months" className="text-black">
@@ -299,8 +290,9 @@ export default function StudentRegistration() {
           <button
             type="button"
             onClick={() => {
-              setFormData(initialFormState);
-              // console.log(formData);
+              // setFormData({} as StudentForm);
+              // router.back();
+              console.log("formData", formData);
             }}
             className="rounded bg-[#202B5D] px-8 py-3 text-white"
           >
@@ -326,23 +318,7 @@ export default function StudentRegistration() {
             onClick={() => {
               setIsSuccess(false);
             }}
-            message="Student registered succesfully"
-          />
-        </Modal>
-        <Modal
-          aria-labelledby="unstyled-modal-title"
-          aria-describedby="unstyled-modal-description"
-          open={errorString.length > 0}
-          onClose={() => {
-            setErrorString("");
-          }}
-          className="flex h-full w-full items-center justify-center"
-        >
-          <ErrorPopup
-            onClick={() => {
-              setErrorString("");
-            }}
-            message={errorString}
+            message="Student updated succesfully"
           />
         </Modal>
       </form>

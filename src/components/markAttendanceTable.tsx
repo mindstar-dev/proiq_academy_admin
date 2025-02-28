@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import { api } from "~/utils/api";
+import SuccessPopup from "./successPopup";
+import { Modal } from "@mui/material";
+import ErrorPopup from "./errorPopup";
 
 interface AttendanceTableProps {
   attendance: attendanceData[];
@@ -27,12 +30,54 @@ interface attendanceData {
   };
 }
 
-const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
+const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
   attendance,
   date,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [localData, setLocalData] = useState<attendanceData[]>();
+  const [firstRender, setFirstRender] = useState(false);
+  const [isScuccess, setIsSuccess] = useState(false);
+  const [errorString, setErrorString] = useState("");
 
+  useEffect(() => {
+    if (attendance && !firstRender) {
+      setLocalData(attendance);
+      setFirstRender(true);
+    }
+  }, [attendance]);
+  const markAsPresent = (index: number) => {
+    setLocalData((prevData) => {
+      if (!prevData) return prevData;
+
+      const updatedData = prevData.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              status:
+                item.status === $Enums.AttendanceStatus.PRESENT
+                  ? $Enums.AttendanceStatus.ABSENT
+                  : $Enums.AttendanceStatus.PRESENT,
+            }
+          : item
+      );
+
+      return updatedData;
+    });
+  };
+  const registerattendance = api.attendance.markattendance.useMutation({
+    onSuccess(data, variables, context) {
+      setIsSuccess(true);
+    },
+    onError(error, variables, context) {
+      setErrorString(error.message);
+    },
+  });
+  const handleSubmit = async () => {
+    if (localData) {
+      await registerattendance.mutate(localData);
+    }
+  };
   return (
     <div className="p-6">
       <div className="relative flex w-full flex-col-reverse items-start justify-start gap-y-2 py-7 lg:flex-row">
@@ -73,7 +118,7 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-transparent">
-            {attendance?.map((student, index) => (
+            {localData?.map((student, index) => (
               <tr key={index} className="border-b border-dashed text-center">
                 <td className="border border-dashed p-2">
                   {student.studentId.slice(0, 8)}
@@ -104,6 +149,9 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
                           ? "bg-green-500"
                           : "bg-white"
                       }`}
+                      onClick={() => {
+                        markAsPresent(index);
+                      }}
                     >
                       {student.status === $Enums.AttendanceStatus.PRESENT ? (
                         <FaCheck className=" text-white" />
@@ -119,6 +167,9 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
                           ? "bg-red-500"
                           : "bg-white"
                       }`}
+                      onClick={() => {
+                        markAsPresent(index);
+                      }}
                     >
                       {student.status === $Enums.AttendanceStatus.ABSENT ? (
                         <ImCross className=" text-white" />
@@ -137,9 +188,47 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
           >
             Cancel
           </Link>
+          <button
+            className="w-48 self-end justify-self-end rounded-lg bg-[#FCD56C] p-6 text-[#202B5D]"
+            onClick={handleSubmit}
+          >
+            Submit
+          </button>
         </div>
       </div>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={isScuccess}
+        onClose={() => {
+          setIsSuccess(false);
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <SuccessPopup
+          onClick={() => {
+            setIsSuccess(false);
+          }}
+          message="Attendacne Marked succesfully"
+        />
+      </Modal>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={errorString.length > 0}
+        onClose={() => {
+          setErrorString("");
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <ErrorPopup
+          onClick={() => {
+            setErrorString("");
+          }}
+          message={errorString}
+        />
+      </Modal>
     </div>
   );
 };
-export default AttendanceTable;
+export default MarkAttendanceTable;

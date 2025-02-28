@@ -1,17 +1,17 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import MarkAttendanceTable from "~/components/markAttendanceTable";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
+import { AttendanceTable } from "~/components";
 interface AttendanceStatusForm {
   centreId: string;
   courseId: string;
   date: string;
 }
-const Markattendance: React.FunctionComponent = () => {
+const Checkattendance: React.FunctionComponent = () => {
   const router = useRouter();
   const { centreId, courseId, date } = router.query;
   const [errorString, setErrorString] = useState("");
@@ -49,7 +49,7 @@ const Markattendance: React.FunctionComponent = () => {
   return (
     <MainPageTemplate>
       <div className="container mx-auto p-6">
-        <MarkAttendanceTable
+        <AttendanceTable
           attendance={attendance}
           date={new Date(date as string)}
         />
@@ -57,4 +57,4 @@ const Markattendance: React.FunctionComponent = () => {
     </MainPageTemplate>
   );
 };
-export default Markattendance;
+export default Checkattendance;
