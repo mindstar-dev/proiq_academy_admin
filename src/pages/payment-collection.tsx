@@ -27,8 +27,8 @@ const PaymentCollection: React.FunctionComponent = () => {
     isError,
     isLoading,
   } = api.centre.getAllCentreByUserId.useQuery({
-    id: session!.user.id,
-    role: session!.user.role,
+    id: session?.user.id ?? "",
+    role: session?.user.role ?? "",
   });
   const {
     data: courses,

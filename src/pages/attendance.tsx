@@ -1,31 +1,35 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
+
 interface AttendanceForm {
   centreId: string;
   courseId: string;
   date: string;
 }
+
 const Attendance: React.FunctionComponent = () => {
   const [errorString, setErrorString] = useState("");
   const [formData, setFormData] = useState<AttendanceForm>({
     centreId: "",
     courseId: "",
     date: "",
-  } as AttendanceForm);
+  });
 
   const { status, data: session } = useSession();
+  const [isSessionLoaded, setIsSessionLoaded] = useState(false);
+
   const {
     data: centres,
     isError,
     isLoading,
   } = api.centre.getAllCentreByUserId.useQuery({
-    id: session!.user.id,
-    role: session!.user.role,
+    id: session?.user.id ?? "",
+    role: session?.user.role ?? "",
   });
   const {
     data: courses,
@@ -34,20 +38,35 @@ const Attendance: React.FunctionComponent = () => {
   } = api.course.getCourseByCentreId.useQuery({
     centreId: formData.centreId,
   });
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  if (status == "unauthenticated") {
-    return (
-      <ErrorScreen errorString="You dont have permission to access this screen" />
-    );
-  }
-  if (status == "loading" || isLoading || isCoursesLoading) {
+
+  // Set session loaded flag after session data is available
+  useEffect(() => {
+    if (status !== "loading") {
+      setIsSessionLoaded(true);
+    }
+  }, [status]);
+
+  if (!isSessionLoaded) {
     return <LoadingScreen />;
   }
-  if (errorString != "" || isError || isCoursesError) {
+
+  if (status === "unauthenticated") {
+    return (
+      <ErrorScreen errorString="You don't have permission to access this screen" />
+    );
+  }
+
+  if (status === "loading" || isLoading || isCoursesLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (errorString !== "" || isError || isCoursesError) {
     return (
       <ErrorScreen
         errorString={errorString}
@@ -57,17 +76,15 @@ const Attendance: React.FunctionComponent = () => {
       />
     );
   }
-  console.log("user", session);
+
   return (
     <MainPageTemplate>
       <div className="flex w-full flex-col">
-        <h1 className="self-center py-7 text-3xl">Attendence</h1>
+        <h1 className="self-center py-7 text-3xl">Attendance</h1>
         <div className="grid w-full grid-cols-1 gap-x-4 self-center py-7 lg:w-4/5 lg:grid-cols-2">
           <select
             className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
-              formData.centreId == null || formData.centreId == ""
-                ? "text-gray-400"
-                : "text-black"
+              formData.centreId === "" ? "text-gray-400" : "text-black"
             }`}
             value={formData.centreId}
             name="centreId"
@@ -76,23 +93,15 @@ const Attendance: React.FunctionComponent = () => {
             <option selected disabled value="">
               Select Centre
             </option>
-            {centres?.map((centre) => {
-              return (
-                <option
-                  value={centre.id}
-                  className="text-black"
-                  key={centre.id}
-                >
-                  {centre.name}
-                </option>
-              );
-            })}
+            {centres?.map((centre) => (
+              <option value={centre.id} className="text-black" key={centre.id}>
+                {centre.name}
+              </option>
+            ))}
           </select>
           <select
             className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
-              formData.courseId == null || formData.courseId == ""
-                ? "text-gray-400"
-                : "text-black"
+              formData.courseId === "" ? "text-gray-400" : "text-black"
             }`}
             value={formData.courseId}
             name="courseId"
@@ -101,17 +110,11 @@ const Attendance: React.FunctionComponent = () => {
             <option selected disabled value="">
               Select Course
             </option>
-            {courses.map((course) => {
-              return (
-                <option
-                  value={course.id}
-                  className="text-black"
-                  key={course.id}
-                >
-                  {course.name}
-                </option>
-              );
-            })}
+            {courses?.map((course) => (
+              <option value={course.id} className="text-black" key={course.id}>
+                {course.name}
+              </option>
+            ))}
           </select>
           <input
             placeholder="Select Date"
@@ -134,7 +137,7 @@ const Attendance: React.FunctionComponent = () => {
               },
             }}
           >
-            Check Attendence
+            Check Attendance
           </Link>
 
           <Link
@@ -148,7 +151,7 @@ const Attendance: React.FunctionComponent = () => {
               },
             }}
           >
-            Mark Attendence
+            Mark Attendance
           </Link>
         </div>
       </div>
