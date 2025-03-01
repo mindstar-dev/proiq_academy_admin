@@ -48,7 +48,7 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
           </button>
         </div>
         <h1 className="self-center text-3xl md:absolute md:left-1/2 md:-translate-x-1/2">
-          attendance
+          Check Attendance
         </h1>
       </div>
 

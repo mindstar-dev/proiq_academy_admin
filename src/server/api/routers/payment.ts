@@ -69,9 +69,7 @@ export const paymentRouter = createTRPCRouter({
   getAllMonthlyPayments: protectedProcedure
     .input(
       z.object({
-        month: z
-          .string({ required_error: "Month can't be empty" })
-          .regex(/^\d{4}-\d{2}$/),
+        month: z.string({ required_error: "Month can't be empty" }),
       })
     )
     .query(async ({ ctx, input }) => {

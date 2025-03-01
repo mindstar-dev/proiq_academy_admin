@@ -36,6 +36,8 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
   students,
 }) => {
   const today = new Date();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -98,11 +100,13 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
                 : null;
 
               const isMoreThanOneMonth =
-                paymentDate &&
-                (today.getFullYear() > paymentDate.getFullYear() ||
-                  (today.getFullYear() === paymentDate.getFullYear() &&
-                    today.getMonth() > paymentDate.getMonth()));
-
+                paymentDate && paymentDate > oneMonthAgo;
+              console.log(
+                "For Payment Date",
+                paymentDate,
+                "isMoreThanOneMonth",
+                isMoreThanOneMonth
+              );
               return (
                 <tr
                   key={index}

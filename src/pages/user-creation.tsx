@@ -1,9 +1,12 @@
+import { Modal } from "@mui/material";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
 import CustomDropdown from "~/components/customDropdown";
+import ErrorPopup from "~/components/errorPopup";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
+import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 interface FormData {
@@ -17,6 +20,8 @@ interface FormData {
 }
 
 const UserCreation: React.FunctionComponent = () => {
+  const [errorString, setErrorString] = useState("");
+  const [isScuccess, setIsSuccess] = useState(false);
   const createUser = api.user.create.useMutation();
   const [formData, setFormData] = useState<FormData>({
     imageUrl: "demo",
@@ -147,6 +152,39 @@ const UserCreation: React.FunctionComponent = () => {
           </button>
         </div>
       </div>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={isScuccess}
+        onClose={() => {
+          setIsSuccess(false);
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <SuccessPopup
+          onClick={() => {
+            setIsSuccess(false);
+          }}
+          message="Centre created succesfully"
+        />
+      </Modal>
+
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={errorString.length > 0}
+        onClose={() => {
+          setErrorString("");
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <ErrorPopup
+          onClick={() => {
+            setErrorString("");
+          }}
+          message={errorString}
+        />
+      </Modal>
     </MainPageTemplate>
   );
 };

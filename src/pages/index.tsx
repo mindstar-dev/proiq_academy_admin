@@ -7,7 +7,7 @@ import { useEffect } from "react";
 export default function Home() {
   const { status } = useSession();
   const router = useRouter();
-  console.log("index status", status);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");

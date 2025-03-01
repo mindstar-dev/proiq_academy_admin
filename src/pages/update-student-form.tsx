@@ -86,10 +86,15 @@ export default function UpdateStudentForm() {
       <ErrorScreen errorString="You dont have permission to access this screen" />
     );
   }
-  if (isLoading || isCoursesLoading || status == "loading") {
+  if (
+    isLoading ||
+    isCoursesLoading ||
+    isStudentDataLoading ||
+    status == "loading"
+  ) {
     return <LoadingScreen />;
   }
-  if (errorString != "" || isError || isCoursesError) {
+  if (errorString != "" || isError || isStudentDataError || isCoursesError) {
     return (
       <ErrorScreen
         errorString={errorString}

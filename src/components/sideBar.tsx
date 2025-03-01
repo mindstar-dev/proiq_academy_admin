@@ -85,7 +85,11 @@ const SideBar: React.FunctionComponent = () => {
             <li className="pb-2">
               <Link
                 href="update-student"
-                className="relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999]"
+                className={`relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999] ${
+                  pathName === "/update-student"
+                    ? "rounded-full bg-[#FABA09]"
+                    : ""
+                }`}
               >
                 Update Student Reg.
               </Link>

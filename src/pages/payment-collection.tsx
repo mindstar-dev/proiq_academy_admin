@@ -1,8 +1,10 @@
+import { Modal } from "@mui/material";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
+import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 interface PaymentCollectionForm {
@@ -234,6 +236,22 @@ const PaymentCollection: React.FunctionComponent = () => {
           </div>
         </form>
       </div>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={isScuccess}
+        onClose={() => {
+          setIsSuccess(false);
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <SuccessPopup
+          onClick={() => {
+            setIsSuccess(false);
+          }}
+          message="Payment Collected succesfully"
+        />
+      </Modal>
     </MainPageTemplate>
   );
 };
