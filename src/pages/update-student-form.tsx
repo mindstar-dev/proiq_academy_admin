@@ -8,6 +8,8 @@ import LoadingScreen from "~/components/loadingScreen";
 import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
+import { deleteImage } from "~/utils/deleteImage";
+import { uploadFile } from "~/utils/uploadImage";
 interface StudentForm {
   studentId: string;
   name: string;
@@ -45,13 +47,51 @@ export default function UpdateStudentForm() {
   };
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
-
-  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    createStudent.mutate(formData);
+  const [image, setImage] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  // const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   console.log("Form submitted:", formData);
+  //   updateStudent.mutate(formData);
+  // };
+  const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
+    if (file) {
+      event.preventDefault();
+      try {
+        const imageUrl = await uploadFile(
+          file,
+          formData.name,
+          "student-images"
+        );
+        await deleteImage(formData.imageUrl, "student-images");
+        if (imageUrl) {
+          updateStudent.mutate({ ...formData, imageUrl: imageUrl });
+        }
+      } catch (error) {
+        setErrorString("Failed to upload file");
+      }
+    } else {
+      updateStudent.mutate({ ...formData, imageUrl: "" });
+    }
   };
-  const createStudent = api.student.update.useMutation({
+  const handleLocalFileSelection = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+        setFile(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  const triggerFileInput = () => {
+    const fileInput = document.getElementById("fileInput") as HTMLInputElement;
+    if (fileInput) fileInput.click();
+  };
+  const updateStudent = api.student.update.useMutation({
     onError(error) {
       setErrorString(error.message);
     },
@@ -78,6 +118,7 @@ export default function UpdateStudentForm() {
   });
   useEffect(() => {
     if (studentData) {
+      setImage(studentData.imageUrl);
       setFormData(studentData as StudentForm);
     }
   }, [studentData]);
@@ -116,10 +157,36 @@ export default function UpdateStudentForm() {
             Update Student <span className="text-[#DCA200]"> Data</span>
           </h1>
           <div className="relative h-24 w-24 self-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-300"></div>
+            {/* Hidden file input */}
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleLocalFileSelection}
+            />
+
+            {/* Image placeholder (clickable) */}
+            <div
+              className="flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-gray-300"
+              onClick={triggerFileInput}
+            >
+              {image ? (
+                <img
+                  src={image}
+                  alt="Uploaded"
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-600">+</span>
+              )}
+            </div>
+
+            {/* Edit button (clickable) */}
             <button
               type="button"
               className="absolute bottom-0 right-0 rounded-full bg-gray-500 p-1 text-white shadow-md hover:bg-gray-600"
+              onClick={triggerFileInput}
             >
               ✏️
             </button>

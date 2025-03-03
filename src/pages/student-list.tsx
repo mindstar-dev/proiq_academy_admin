@@ -81,8 +81,8 @@ const StudentList: React.FunctionComponent = () => {
 
   return (
     <MainPageTemplate>
-      <div className="flex w-full flex-col items-center justify-start gap-y-7">
-        <div className="relative mt-4 flex w-full flex-row items-center justify-end px-[5%] py-7 lg:flex-col lg:px-[10%]">
+      <div className="flex w-full max-w-full flex-col items-center justify-start gap-y-7">
+        <div className="relative mt-4 flex w-full max-w-full flex-row items-center justify-end px-[5%] py-7 lg:flex-col lg:px-[10%]">
           <h1 className=" text-3xl md:absolute md:left-1/2 md:-translate-x-1/2">
             Student <span className="text-[#DCA200]"> List</span>
           </h1>
@@ -94,7 +94,7 @@ const StudentList: React.FunctionComponent = () => {
           </Link>
         </div>
 
-        <div className="w-4/5">
+        <div className="w-full px-[5%] py-7  lg:px-[10%]">
           <CustomDropdown
             className="w-full"
             selectedValues={formData.centreIds}

@@ -100,7 +100,7 @@ const CreateCourse: React.FunctionComponent = () => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Full Name"
+            placeholder="Course Name"
             className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:col-span-2 lg:justify-self-end"
           />
           <CustomDropdown

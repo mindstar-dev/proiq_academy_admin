@@ -9,6 +9,7 @@ import LoadingScreen from "~/components/loadingScreen";
 import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
+import { uploadFile } from "~/utils/uploadImage";
 interface StudentForm {
   name: string;
   address: string;
@@ -42,9 +43,19 @@ export default function StudentRegistration() {
     classDays: [],
     classTiming: "",
     readdmission: false,
-    imageUrl: "demo URl",
+    imageUrl: "",
   };
   const [formData, setFormData] = useState<StudentForm>(initialFormState);
+  const [image, setImage] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [errorString, setErrorString] = useState("");
+  const [isScuccess, setIsSuccess] = useState(false);
+
+  // const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   console.log("Form submitted:", formData);
+  //   createStudent.mutate(formData);
+  // };
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -58,20 +69,50 @@ export default function StudentRegistration() {
     }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  const [errorString, setErrorString] = useState("");
-  const [isScuccess, setIsSuccess] = useState(false);
-
-  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    createStudent.mutate(formData);
-    // Add further form submission logic here (e.g., API call)
+  const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
+    if (file) {
+      event.preventDefault();
+      try {
+        const imageUrl = await uploadFile(
+          file,
+          formData.name,
+          "student-images"
+        );
+        if (imageUrl) {
+          createStudent.mutate({ ...formData, imageUrl: imageUrl });
+        }
+      } catch (error) {
+        setErrorString("Failed to upload file");
+      }
+    } else {
+      createStudent.mutate({ ...formData, imageUrl: "" });
+    }
+  };
+  const handleLocalFileSelection = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+        setFile(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  const triggerFileInput = () => {
+    const fileInput = document.getElementById("fileInput") as HTMLInputElement;
+    if (fileInput) fileInput.click();
   };
   const createStudent = api.student.create.useMutation({
     onError(error) {
       setErrorString(error.message);
     },
     onSuccess() {
+      setFormData(initialFormState);
+      setFile(null);
+      setImage(null);
       setIsSuccess(true);
     },
   });
@@ -121,10 +162,36 @@ export default function StudentRegistration() {
             Student <span className="text-[#DCA200]"> Registration</span>
           </h1>
           <div className="relative h-24 w-24 self-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-300"></div>
+            {/* Hidden file input */}
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleLocalFileSelection}
+            />
+
+            {/* Image placeholder (clickable) */}
+            <div
+              className="flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-gray-300"
+              onClick={triggerFileInput}
+            >
+              {image ? (
+                <img
+                  src={image}
+                  alt="Uploaded"
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-600">+</span>
+              )}
+            </div>
+
+            {/* Edit button (clickable) */}
             <button
               type="button"
               className="absolute bottom-0 right-0 rounded-full bg-gray-500 p-1 text-white shadow-md hover:bg-gray-600"
+              onClick={triggerFileInput}
             >
               ✏️
             </button>
@@ -311,7 +378,8 @@ export default function StudentRegistration() {
             type="button"
             onClick={() => {
               setFormData(initialFormState);
-              // console.log(formData);
+              setFile(null);
+              setImage(null);
             }}
             className="rounded bg-[#202B5D] px-8 py-3 text-white"
           >

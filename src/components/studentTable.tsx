@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React, { useRef, useState } from "react";
 
 interface StudentData {
@@ -80,10 +81,11 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
-        <table className="min-w-full table-auto border-collapse whitespace-nowrap">
+        <table className="mx-10 min-w-full table-auto border-collapse whitespace-nowrap">
           <thead>
             <tr className="border-b border-dashed bg-gray-200">
               <th className="border p-2">ID</th>
+              <th className="border p-2">Image</th>
               <th className="border p-2">Name</th>
               <th className="border p-2">Parent Name</th>
               <th className="border p-2">Phone Number 1</th>
@@ -124,6 +126,26 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
                 >
                   <td className="border p-2">
                     {student.studentId.slice(0, 8)}
+                  </td>
+                  <td
+                    className={`border border-dashed p-2 ${
+                      student.imageUrl.startsWith("http") ||
+                      student.imageUrl.startsWith("https")
+                        ? "min-w-28"
+                        : ""
+                    }`}
+                  >
+                    {student.imageUrl.startsWith("http") ||
+                    student.imageUrl.startsWith("https") ? (
+                      <Image
+                        src={student.imageUrl}
+                        alt=""
+                        width={100}
+                        height={100}
+                      />
+                    ) : (
+                      <></>
+                    )}
                   </td>
                   <td className="border p-2">{student.name}</td>
                   <td className="border p-2">{student.parentName}</td>

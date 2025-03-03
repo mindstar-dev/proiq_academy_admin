@@ -9,6 +9,7 @@ import LoadingScreen from "~/components/loadingScreen";
 import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
+import { uploadFile } from "~/utils/uploadImage";
 interface FormData {
   name: string;
   email: string;
@@ -22,10 +23,20 @@ interface FormData {
 const UserCreation: React.FunctionComponent = () => {
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
-  const createUser = api.user.create.useMutation();
-  const [formData, setFormData] = useState<FormData>({
-    imageUrl: "demo",
-  } as FormData);
+  const [image, setImage] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const createUser = api.user.create.useMutation({
+    onError(error) {
+      setErrorString(error.message);
+    },
+    onSuccess() {
+      setFormData({} as FormData);
+      setFile(null);
+      setImage(null);
+      setIsSuccess(true);
+    },
+  });
+  const [formData, setFormData] = useState<FormData>({} as FormData);
   const { status, data: session } = useSession();
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -35,11 +46,43 @@ const UserCreation: React.FunctionComponent = () => {
       [e.target.name]: e.target.value,
     });
   };
-
-  const handleSubmit = () => {
-    createUser.mutate(formData);
-    console.log(formData);
+  const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (file) {
+      event.preventDefault();
+      try {
+        const imageUrl = await uploadFile(file, formData.name, "user-images");
+        if (imageUrl) {
+          createUser.mutate({ ...formData, imageUrl: imageUrl });
+        }
+      } catch (error) {
+        setErrorString("Failed to upload file");
+      }
+    } else {
+      createUser.mutate({ ...formData, imageUrl: "" });
+    }
   };
+  const handleLocalFileSelection = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+        setFile(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  const triggerFileInput = () => {
+    const fileInput = document.getElementById("fileInput") as HTMLInputElement;
+    if (fileInput) fileInput.click();
+  };
+
+  // const handleSubmit = () => {
+  //   createUser.mutate(formData);
+  //   console.log(formData);
+  // };
   const {
     data: centres,
     isError,
@@ -74,8 +117,37 @@ const UserCreation: React.FunctionComponent = () => {
           </Link>
         </div>
         <div className="relative h-24 w-24 self-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-300"></div>
-          <button className="absolute bottom-0 right-0 rounded-full bg-gray-500 p-1 text-white shadow-md hover:bg-gray-600">
+          {/* Hidden file input */}
+          <input
+            id="fileInput"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleLocalFileSelection}
+          />
+
+          {/* Image placeholder (clickable) */}
+          <div
+            className="flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-gray-300"
+            onClick={triggerFileInput}
+          >
+            {image ? (
+              <img
+                src={image}
+                alt="Uploaded"
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-gray-600">+</span>
+            )}
+          </div>
+
+          {/* Edit button (clickable) */}
+          <button
+            type="button"
+            className="absolute bottom-0 right-0 rounded-full bg-gray-500 p-1 text-white shadow-md hover:bg-gray-600"
+            onClick={triggerFileInput}
+          >
             ✏️
           </button>
         </div>

@@ -8,7 +8,7 @@ export const userRouter = createTRPCRouter({
       return ctx.prisma.user.create({
         data: {
           email: input.email.toLowerCase(),
-          imageUrl: "demo url",
+          imageUrl: input.imageUrl,
           name: input.name,
           password: input.password,
           phoneNumber: input.phoneNumber,
@@ -27,6 +27,7 @@ export const userRouter = createTRPCRouter({
         name: true,
         userType: true,
         phoneNumber: true,
+        imageUrl: true,
         centres: {
           select: {
             name: true,
