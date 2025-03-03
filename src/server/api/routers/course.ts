@@ -7,6 +7,9 @@ import {
 import { CourseInput } from "~/types";
 
 export const courseRouter = createTRPCRouter({
+  count: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.course.count();
+  }),
   getAllCourseNames: protectedProcedure.query(async ({ ctx }) => {
     const courses = await ctx.prisma.course.findMany();
     const courseNames: string[] = courses.map((course) => course.name);

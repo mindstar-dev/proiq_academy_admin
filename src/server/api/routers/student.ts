@@ -4,6 +4,9 @@ import { z } from "zod";
 import { $Enums } from "@prisma/client";
 
 export const studentRouter = createTRPCRouter({
+  count: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.student.count();
+  }),
   create: protectedProcedure
     .input(StudentInput)
     .mutation(async ({ ctx, input }) => {

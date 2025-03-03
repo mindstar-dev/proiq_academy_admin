@@ -7,6 +7,9 @@ import {
 import { CentreInput } from "~/types";
 
 export const centreRouter = createTRPCRouter({
+  count: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.centre.count();
+  }),
   getAllNames: protectedProcedure.query(async ({ ctx }) => {
     const centres = await ctx.prisma.centre.findMany();
     const centreNames: string[] = centres.map((centre) => centre.name);
