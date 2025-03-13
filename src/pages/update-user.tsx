@@ -11,33 +11,30 @@ import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 import { deleteImage } from "~/utils/deleteImage";
 import { uploadFile } from "~/utils/uploadImage";
-interface StudentForm {
+interface UserForm {
+  status: $Enums.UserStatus;
   name: string;
+  email: string;
+  userType: string;
+  imageUrl: string;
+  phoneNumber: string;
+  centres: string[];
   address: string;
-  parentName: string;
-  parentOccupation: string;
-  parentContactNumber1: string;
-  parentContactNumber2?: string;
+  id: string;
   idProof: string;
   idProofType: string;
-  centreId: string;
-  courseNames: string[];
-  classDays: string[];
-  readdmission: boolean;
-  imageUrl: string;
   dob: string;
-  status: $Enums.UserStatus;
 }
-export default function UpdateStudentForm() {
-  const [formData, setFormData] = useState<StudentForm>({} as StudentForm);
+export default function UpdateUser() {
+  const [formData, setFormData] = useState<UserForm>({} as UserForm);
   const router = useRouter();
-  const { studentId } = router.query ?? " ";
+  const { id } = router.query ?? " ";
   const {
-    data: studentData,
-    isError: isStudentDataError,
-    isLoading: isStudentDataLoading,
-  } = api.student.getById.useQuery({
-    studentId: studentId as string,
+    data: userData,
+    isError: isUserDataError,
+    isLoading: isUserDataLoading,
+  } = api.user.getByIdWithArray.useQuery({
+    id: id as string,
   });
 
   const handleChange = (
@@ -49,7 +46,6 @@ export default function UpdateStudentForm() {
   const [isScuccess, setIsSuccess] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-
   const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
     const dob = new Date(formData.dob);
@@ -62,13 +58,13 @@ export default function UpdateStudentForm() {
         );
         await deleteImage(formData.imageUrl, "student-images");
         if (imageUrl) {
-          updateStudent.mutate({ ...formData, imageUrl: imageUrl, dob: dob });
+          updateUser.mutate({ ...formData, imageUrl: imageUrl, dob: dob });
         }
       } catch (error) {
         setErrorString("Failed to upload file");
       }
     } else {
-      updateStudent.mutate({ ...formData, imageUrl: "", dob: dob });
+      updateUser.mutate({ ...formData, imageUrl: "", dob: dob });
     }
   };
   const handleLocalFileSelection = (
@@ -88,7 +84,7 @@ export default function UpdateStudentForm() {
     const fileInput = document.getElementById("fileInput") as HTMLInputElement;
     if (fileInput) fileInput.click();
   };
-  const updateStudent = api.student.update.useMutation({
+  const updateUser = api.user.update.useMutation({
     onError(error) {
       setErrorString(error.message);
     },
@@ -102,44 +98,26 @@ export default function UpdateStudentForm() {
     isError,
     isSuccess,
     isLoading,
-  } = api.centre.getAllCentreByUserId.useQuery({
-    id: session?.user.id ?? "",
-    role: session?.user.role ?? "",
-  });
-  const {
-    data: courses,
-    isError: isCoursesError,
-    isLoading: isCoursesLoading,
-  } = api.course.getCourseByCentreName.useQuery({
-    centreName: formData?.centreId ?? "",
-  });
+  } = api.centre.getAllNames.useQuery();
+
   useEffect(() => {
-    if (studentData && studentData !== null && studentData !== undefined) {
-      setImage(studentData.imageUrl);
-      const formattedDob = studentData.dob
-        ? new Date(studentData.dob).toISOString().split("T")[0]
+    if (userData && userData !== null && userData !== undefined) {
+      setImage(userData.imageUrl);
+      const formattedDob = userData.dob
+        ? new Date(userData.dob).toISOString().split("T")[0]
         : "";
-      setFormData({
-        ...studentData,
-        dob: formattedDob ?? "",
-        parentContactNumber2: studentData.parentContactNumber2 ?? "",
-      });
+      setFormData({ ...userData, dob: formattedDob ?? "" });
     }
-  }, [studentData]);
+  }, [userData]);
   if (status == "unauthenticated") {
     return (
       <ErrorScreen errorString="You dont have permission to access this screen" />
     );
   }
-  if (
-    isLoading ||
-    isCoursesLoading ||
-    isStudentDataLoading ||
-    status == "loading"
-  ) {
+  if (isLoading || isUserDataLoading || status == "loading") {
     return <LoadingScreen />;
   }
-  if (errorString != "" || isError || isStudentDataError || isCoursesError) {
+  if (errorString != "" || isError || isUserDataError) {
     return (
       <ErrorScreen
         errorString={errorString}
@@ -196,30 +174,81 @@ export default function UpdateStudentForm() {
             </button>
           </div>
         </div>
-        <div className="w-full bg-[#FABA09] bg-opacity-60 px-[10%] py-4 text-2xl">
-          Student Details
-        </div>
-        <div className="grid w-full max-w-[90%] grid-cols-1 self-center sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 lg:gap-x-[10%]">
+        <div className="grid grid-cols-1 py-7 lg:grid-cols-2">
           <input
             name="name"
+            placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Full Name"
-            className="col-span-1 h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:col-span-2 lg:justify-self-end"
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none "
           />
-
+          <input
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
+          />
           <input
             name="address"
+            placeholder="Address"
             value={formData.address}
             onChange={handleChange}
-            placeholder="Full Address"
-            className="col-span-1 h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:col-span-2 lg:justify-self-end"
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
+          />
+          <input
+            name="dob"
+            placeholder="Date Of Birth"
+            type="date"
+            value={formData.dob}
+            onChange={handleChange}
+            className={`h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none ${
+              formData.dob == null || formData.dob == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+          />
+
+          <select
+            name="userType"
+            value={formData.userType}
+            onChange={handleChange}
+            className={`h-12 w-4/5 justify-self-center border-b border-b-[#919191] focus:outline-none ${
+              formData.userType == null || formData.userType == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+          >
+            <option disabled value="" selected>
+              Select User Type
+            </option>
+            <option value="Teacher" className="text-black">
+              Teacher
+            </option>
+            <option value="Admin" className="text-black">
+              Admin
+            </option>
+          </select>
+          <CustomDropdown
+            selectedValues={userData?.centres ?? []}
+            setSelectedValues={(value) =>
+              setFormData({ ...formData, centres: value })
+            }
+            placeHolder="Select Centres"
+            values={centres as []}
+          />
+          <input
+            name="phoneNumber"
+            placeholder="Contact Number"
+            value={formData.phoneNumber}
+            onChange={handleChange}
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
           />
           <select
             name="idProofType"
             value={formData.idProofType}
             onChange={handleChange}
-            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
+            className={`h-12 w-4/5 justify-self-center border-b border-b-[#919191] focus:outline-none ${
               formData.idProofType == null || formData.idProofType == ""
                 ? "text-gray-400"
                 : "text-black"
@@ -231,8 +260,11 @@ export default function UpdateStudentForm() {
             <option value="Aadhar" className="text-black">
               Aadhar
             </option>
-            <option value="Birth certificate" className="text-black">
-              Birth certificate
+            <option value="PAN" className="text-black">
+              PAN
+            </option>
+            <option value=" Voter card" className="text-black">
+              Voter card
             </option>
           </select>
           <input
@@ -240,78 +272,13 @@ export default function UpdateStudentForm() {
             value={formData.idProof}
             onChange={handleChange}
             placeholder="ID proof number"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none"
-          />
-          <input
-            name="dob"
-            value={formData.dob}
-            onChange={handleChange}
-            placeholder="ID proof number"
-            type="date"
-            className={`h-12 w-full justify-self-center border-b border-b-[#919191]  focus:outline-none ${
-              formData.dob == null || formData.dob.toString() == ""
-                ? "text-gray-400"
-                : "text-black"
-            }`}
-          />
-          <select
-            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
-              formData.centreId == null || formData.centreId == ""
-                ? "text-gray-400"
-                : "text-black"
-            }`}
-            value={formData.centreId}
-            name="centreId"
-            onChange={handleChange}
-          >
-            <option selected value={""}>
-              Select Centre
-            </option>
-            {centres?.map((centre) => {
-              return (
-                <option
-                  value={centre.name}
-                  className="text-black"
-                  key={centre.name}
-                >
-                  {centre.name}
-                </option>
-              );
-            })}
-          </select>
-
-          <CustomDropdown
-            className="w-full"
-            selectedValues={formData.courseNames}
-            setSelectedValues={(value) =>
-              setFormData({ ...formData, courseNames: value })
-            }
-            placeHolder="Select Courses"
-            values={courses}
-          />
-
-          <CustomDropdown
-            className="w-full"
-            selectedValues={formData.classDays}
-            setSelectedValues={(value) =>
-              setFormData({ ...formData, classDays: value })
-            }
-            placeHolder="Select Class Days"
-            values={[
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday",
-            ]}
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
           />
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
+            className={`h-12 w-4/5 justify-self-center border-b border-b-[#919191] focus:outline-none ${
               formData.status == null ? "text-gray-400" : "text-black"
             }`}
           >
@@ -332,42 +299,7 @@ export default function UpdateStudentForm() {
             </option>
           </select>
         </div>
-        <div className="w-full bg-[#FABA09] bg-opacity-60 px-[10%] py-4 text-2xl">
-          Parent Details
-        </div>
-        <div className="grid w-full max-w-[90%] grid-cols-1 self-center lg:grid-cols-2 lg:gap-x-[10%]">
-          <input
-            name="parentName"
-            value={formData.parentName}
-            onChange={handleChange}
-            placeholder="Parent Name"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
-          />
-          <input
-            name="parentOccupation"
-            value={formData.parentOccupation}
-            onChange={handleChange}
-            placeholder="Parent Occupation"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
-          />
 
-          <input
-            name="parentContactNumber1"
-            type="number"
-            value={formData.parentContactNumber1}
-            onChange={handleChange}
-            placeholder="Contact Number 1"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
-          />
-          <input
-            name="parentContactNumber2"
-            value={formData.parentContactNumber2}
-            type="number"
-            onChange={handleChange}
-            placeholder="Alternative Contact Number"
-            className="none h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
-          />
-        </div>
         <div className="flex gap-x-6 self-center justify-self-center pb-7">
           <button
             type="button"

@@ -21,11 +21,10 @@ interface StudentForm {
   idProofType: string;
   centreId: string;
   courseNames: string[];
-  courseDuration: string;
   classDays: string[];
-  classTiming: string;
   readdmission: boolean;
   imageUrl: string;
+  dob: string;
 }
 export default function StudentRegistration() {
   const initialFormState: StudentForm = {
@@ -39,23 +38,20 @@ export default function StudentRegistration() {
     idProofType: "",
     centreId: "",
     courseNames: [],
-    courseDuration: "",
     classDays: [],
-    classTiming: "",
     readdmission: false,
     imageUrl: "",
+    dob: "",
   };
   const [formData, setFormData] = useState<StudentForm>(initialFormState);
+  const [previousFormData, setPreviousFormData] = useState<StudentForm | null>(
+    null
+  );
   const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
-
-  // const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   console.log("Form submitted:", formData);
-  //   createStudent.mutate(formData);
-  // };
+  const [isProcessing, setIsProcessing] = useState(false);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -70,22 +66,35 @@ export default function StudentRegistration() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
+    const dob = new Date(formData.dob);
+    event.preventDefault();
     if (file) {
-      event.preventDefault();
       try {
         const imageUrl = await uploadFile(
           file,
           formData.name,
           "student-images"
         );
+        if (previousFormData == formData) {
+          setErrorString("Data already inserted");
+          return;
+        }
         if (imageUrl) {
-          createStudent.mutate({ ...formData, imageUrl: imageUrl });
+          !isProcessing
+            ? createStudent.mutate({
+                ...formData,
+                imageUrl: imageUrl,
+                dob: dob,
+              })
+            : null;
         }
       } catch (error) {
         setErrorString("Failed to upload file");
       }
     } else {
-      createStudent.mutate({ ...formData, imageUrl: "" });
+      !isProcessing
+        ? createStudent.mutate({ ...formData, imageUrl: "", dob: dob })
+        : null;
     }
   };
   const handleLocalFileSelection = (
@@ -108,9 +117,15 @@ export default function StudentRegistration() {
   const createStudent = api.student.create.useMutation({
     onError(error) {
       setErrorString(error.message);
+      setIsProcessing(false);
+    },
+    onMutate() {
+      setIsProcessing(true);
     },
     onSuccess() {
       setFormData(initialFormState);
+      setPreviousFormData(formData);
+      setIsProcessing(false);
       setFile(null);
       setImage(null);
       setIsSuccess(true);
@@ -212,17 +227,55 @@ export default function StudentRegistration() {
             value={formData.name}
             onChange={handleChange}
             placeholder="Full Name"
-            className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
+            className="col-span-1 h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:col-span-2 lg:justify-self-end"
           />
-
           <input
             name="address"
             value={formData.address}
             onChange={handleChange}
             placeholder="Full Address"
-            className="col-span-1 h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:col-span-2 lg:justify-self-end"
+            className="col-span-1 h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:col-span-2 lg:justify-self-end"
           />
+          <select
+            name="idProofType"
+            value={formData.idProofType}
+            onChange={handleChange}
+            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
+              formData.idProofType == null || formData.idProofType == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+          >
+            <option selected disabled value="">
+              Select ID Proof Type
+            </option>
+            <option value="Aadhar" className="text-black">
+              Aadhar
+            </option>
+            <option value="Birth certificate" className="text-black">
+              Birth certificate
+            </option>
+          </select>
 
+          <input
+            name="idProof"
+            value={formData.idProof}
+            onChange={handleChange}
+            placeholder="ID proof number"
+            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none"
+          />
+          <input
+            name="dob"
+            value={formData.dob}
+            onChange={handleChange}
+            placeholder="ID proof number"
+            type="date"
+            className={`h-12 w-full justify-self-center border-b border-b-[#919191]  focus:outline-none ${
+              formData.dob == null || formData.dob == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+          />
           <select
             className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
               formData.centreId == null || formData.centreId == ""
@@ -258,29 +311,7 @@ export default function StudentRegistration() {
             placeHolder="Select Courses"
             values={courses}
           />
-          <select
-            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
-              formData.courseDuration == null || formData.courseDuration == ""
-                ? "text-gray-400"
-                : "text-black"
-            }`}
-            value={formData.courseDuration}
-            onChange={handleChange}
-            name="courseDuration"
-          >
-            <option selected disabled value="">
-              Select Course Duration
-            </option>
-            <option value="3 Months" className="text-black">
-              3 Months
-            </option>
-            <option value="6 Months" className="text-black">
-              6 Months
-            </option>
-            <option value="1 Year" className="text-black">
-              1 Year
-            </option>
-          </select>
+
           <CustomDropdown
             className="w-full"
             selectedValues={formData.classDays}
@@ -298,15 +329,6 @@ export default function StudentRegistration() {
               "Sunday",
             ]}
           />
-
-          <input
-            name="classTiming"
-            value={formData.classTiming}
-            onChange={handleChange}
-            placeholder="Select Class Time"
-            type="time"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none"
-          />
         </div>
         <div className="w-full bg-[#FABA09] bg-opacity-60 px-[10%] py-4 text-2xl">
           Parent Details
@@ -317,44 +339,14 @@ export default function StudentRegistration() {
             value={formData.parentName}
             onChange={handleChange}
             placeholder="Parent Name"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
+            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
           />
           <input
             name="parentOccupation"
             value={formData.parentOccupation}
             onChange={handleChange}
             placeholder="Parent Occupation"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
-          />
-          <select
-            name="idProofType"
-            value={formData.idProofType}
-            onChange={handleChange}
-            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
-              formData.idProofType == null || formData.idProofType == ""
-                ? "text-gray-400"
-                : "text-black"
-            }`}
-          >
-            <option selected disabled value="">
-              Select ID Proof
-            </option>
-            <option value="Aadhar" className="text-black">
-              Aadhar
-            </option>
-            <option value="PAN" className="text-black">
-              PAN
-            </option>
-            <option value="Passport" className="text-black">
-              Passport
-            </option>
-          </select>
-          <input
-            name="idProof"
-            value={formData.idProof}
-            onChange={handleChange}
-            placeholder="ID proof number"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none"
+            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
           />
           <input
             name="parentContactNumber1"
@@ -362,7 +354,7 @@ export default function StudentRegistration() {
             value={formData.parentContactNumber1}
             onChange={handleChange}
             placeholder="Contact Number 1"
-            className="h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
+            className="h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
           />
           <input
             name="parentContactNumber2"
@@ -370,7 +362,7 @@ export default function StudentRegistration() {
             type="number"
             onChange={handleChange}
             placeholder="Alternative Contact Number"
-            className="none h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
+            className="none h-12 w-full justify-self-center border-b border-b-[#919191]   focus:outline-none lg:justify-self-end"
           />
         </div>
         <div className="flex gap-x-6 self-center justify-self-center pb-7">

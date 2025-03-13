@@ -88,9 +88,9 @@ const StudentList: React.FunctionComponent = () => {
           </h1>
           <Link
             className="rounded-full bg-[#FCD56C] px-4 py-2 text-[#202B5D] shadow-md hover:bg-[#FABA09] lg:self-end"
-            href="create-course"
+            href="/student-registration"
           >
-            Create Course
+            Register Student
           </Link>
         </div>
 

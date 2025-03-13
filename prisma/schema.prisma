@@ -20,13 +20,18 @@ model Post {
 }
 
 model User{
-    id          String @id @default(uuid())
+    id          String @id 
     email       String @unique
     name        String
     password    String
     userType    String
     imageUrl    String
     phoneNumber String
+    idProof     String
+    idProofType String
+    address     String
+    dob         DateTime
+    status      UserStatus
     courses     Course[]
     centres     Centre[]
 }
@@ -36,7 +41,7 @@ model Demo{
 }
 
 model Student{
-    studentId                       String @id @default(uuid())
+    studentId                       String @id 
     name                            String
     address                         String
     parentName                      String
@@ -46,13 +51,13 @@ model Student{
     idProof                         String
     idProofType                     String
     centreId                        String
-    courseDuration                  String
     classDays                       String[]
-    classTiming                     String
     imageUrl                        String
+    dob                             DateTime
     readdmission                    Boolean
     readdmissionPaymentStatus       Boolean
     readdmissionCourseId            String?
+    status                          UserStatus
     centre                          Centre @relation(fields: [centreId], references: [id], onDelete: Cascade)
     attendance                      Attendance[]
     payments                        Payment[]
@@ -63,7 +68,7 @@ model Student{
 
 
 model Course{
-    id              String @id @default(uuid()) // Add an explicit ID
+    id              String @id
     name            String @unique
     faculty         User []
     centre          Centre []
@@ -73,7 +78,7 @@ model Course{
 }
 
 model Centre {
-    id          String @id @default(uuid())  // Unique identifier for the centre
+    id          String @id 
     name        String @unique// Name of the institute
     location    String // Address or location details
     payments    Payment[]
@@ -123,4 +128,8 @@ enum PaymentStatus {
     PENDING
     PARTIAL
 }
-
+enum UserStatus {
+    CONTINUE
+    DISCONTINUE
+    COURSE_COMPLETE
+}

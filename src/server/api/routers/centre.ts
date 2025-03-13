@@ -4,8 +4,27 @@ import {
   publicProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { prisma } from "~/server/db";
 import { CentreInput } from "~/types";
+async function generateCustomCentreId() {
+  const lastUser = await prisma.centre.findFirst({
+    orderBy: { id: "desc" },
+  });
 
+  let newIdNumber = 1;
+
+  if (lastUser) {
+    const lastId = lastUser.id;
+    const match = lastId.match(/(\d+)$/); // Extract numeric part
+    if (match) {
+      newIdNumber = parseInt(match[0]) + 1;
+    }
+  }
+
+  // Format new ID
+  const newId = `PROIQ/C/${String(newIdNumber).padStart(5, "0")}`;
+  return newId;
+}
 export const centreRouter = createTRPCRouter({
   count: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.centre.count();
@@ -88,8 +107,10 @@ export const centreRouter = createTRPCRouter({
   create: protectedProcedure
     .input(CentreInput)
     .mutation(async ({ ctx, input }) => {
+      const id = await generateCustomCentreId();
       return ctx.prisma.centre.create({
         data: {
+          id: id,
           location: input.location,
           name: input.name,
         },

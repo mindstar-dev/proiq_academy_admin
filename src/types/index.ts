@@ -15,6 +15,27 @@ export const UserInput = z.object({
   imageUrl: z.string({ required_error: "Image URL can't be empty" }),
   phoneNumber: z.string({ required_error: "Phone number can't be empty" }),
   centres: z.array(z.string({ required_error: "Centre ID can't be empty" })),
+  status: z.string({ required_error: "Status can't be empty" }).optional(),
+  dob: z.date({ required_error: "DOB can't be empty" }),
+  idProof: z.string({ required_error: "ID proof can't be empty" }),
+  idProofType: z.string({ required_error: "ID proof type can't be empty" }),
+  address: z.string({ required_error: "Address can't be empty" }),
+});
+export const UserUpdateInput = z.object({
+  id: z.string({ required_error: "User ID can't be empty" }),
+  email: z
+    .string({ required_error: "Email can't be empty" })
+    .email("Invalid email"),
+  name: z.string({ required_error: "Name can't be empty" }),
+  userType: z.string({ required_error: "User type can't be empty" }),
+  imageUrl: z.string({ required_error: "Image URL can't be empty" }),
+  phoneNumber: z.string({ required_error: "Phone number can't be empty" }),
+  centres: z.array(z.string({ required_error: "Centre ID can't be empty" })),
+  status: z.string({ required_error: "Status can't be empty" }).optional(),
+  dob: z.date({ required_error: "DOB can't be empty" }),
+  idProof: z.string({ required_error: "ID proof can't be empty" }),
+  idProofType: z.string({ required_error: "ID proof type can't be empty" }),
+  address: z.string({ required_error: "Address can't be empty" }),
 });
 
 export const DemoInput = z.object({
@@ -36,13 +57,11 @@ export const StudentInput = z.object({
   idProof: z.string({ required_error: "ID proof can't be empty" }),
   idProofType: z.string({ required_error: "ID proof type can't be empty" }),
   centreId: z.string({ required_error: "Centre ID can't be empty" }),
-  courseDuration: z.string({
-    required_error: "Course duration can't be empty",
-  }),
+  status: z.string({ required_error: "Status can't be empty" }).optional(),
+  dob: z.date({ required_error: "DOB can't be empty" }),
   classDays: z.array(z.string(), {
     required_error: "Class days can't be empty",
   }),
-  classTiming: z.string({ required_error: "Class timing can't be empty" }),
   courseNames: z.array(z.string(), {
     required_error: "Course name can't be empty",
   }),

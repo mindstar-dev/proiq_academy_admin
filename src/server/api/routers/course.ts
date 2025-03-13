@@ -4,8 +4,27 @@ import {
   publicProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { prisma } from "~/server/db";
 import { CourseInput } from "~/types";
+async function generateCustomCourseId() {
+  const lastUser = await prisma.course.findFirst({
+    orderBy: { id: "desc" },
+  });
 
+  let newIdNumber = 1;
+
+  if (lastUser) {
+    const lastId = lastUser.id;
+    const match = lastId.match(/(\d+)$/); // Extract numeric part
+    if (match) {
+      newIdNumber = parseInt(match[0]) + 1;
+    }
+  }
+
+  // Format new ID
+  const newId = `PROIQ/CR/${String(newIdNumber).padStart(5, "0")}`;
+  return newId;
+}
 export const courseRouter = createTRPCRouter({
   count: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.course.count();
@@ -117,10 +136,12 @@ export const courseRouter = createTRPCRouter({
   create: protectedProcedure
     .input(CourseInput)
     .mutation(async ({ ctx, input }) => {
+      const id = await generateCustomCourseId();
       const emails = input.facultyIds.map((str) => str.split(", ").pop());
-      console.log("emails", emails);
+
       return ctx.prisma.course.create({
         data: {
+          id: id,
           name: input.name,
           centre: {
             connect: input.centreIds.map((centreName) => ({

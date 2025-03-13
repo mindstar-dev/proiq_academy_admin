@@ -1,3 +1,4 @@
+import { $Enums } from "@prisma/client";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 
@@ -23,10 +24,10 @@ interface StudentData {
   parentContactNumber1: string;
   parentContactNumber2?: string | null;
   classDays: string[];
-  classTiming: string;
+  status: $Enums.UserStatus;
   idProof: string;
   idProofType: string;
-  courseDuration: string;
+  dob: Date;
   readdmission: boolean;
   readdmissionCourseId: string | null;
   readdmissionPaymentStatus: boolean;
@@ -74,7 +75,7 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
       ref={tableContainerRef}
       className={`w-full overflow-x-auto ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
-      }  scrollbar-hide select-none`}
+      }   select-none`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -116,13 +117,14 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
                 key={index}
                 className={`border-b text-center ${
                   !isMoreThanOneMonth ||
+                  student.status !== $Enums.UserStatus.CONTINUE ||
                   (student.readdmission == true &&
                     student.readdmissionPaymentStatus == false)
                     ? "text-red-600"
                     : "text-green-600"
                 }`}
               >
-                <td className="border p-2">{student.studentId.slice(0, 8)}</td>
+                <td className="border p-2">{student.studentId}</td>
                 <td
                   className={`border border-dashed p-2 ${
                     student.imageUrl.startsWith("http") ||

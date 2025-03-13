@@ -89,7 +89,7 @@ const UpdateStudent: React.FunctionComponent = () => {
       >
         <div className="flex gap-x-4 self-center px-[10%] pt-7">
           <h1 className="self-center py-7 text-3xl">
-            Update Student <span className="text-[#DCA200]"> Registration</span>
+            Update <span className="text-[#DCA200]"> Student</span>
           </h1>
         </div>
 

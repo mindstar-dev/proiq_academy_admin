@@ -11,13 +11,18 @@ import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 import { uploadFile } from "~/utils/uploadImage";
 interface FormData {
-  name: string;
+  status: string;
   email: string;
-  userType: string;
+  name: string;
   password: string;
+  userType: string;
   imageUrl: string;
-  centres: string[];
   phoneNumber: string;
+  idProof: string;
+  idProofType: string;
+  address: string;
+  centres: string[];
+  dob: string;
 }
 
 const UserCreation: React.FunctionComponent = () => {
@@ -31,12 +36,17 @@ const UserCreation: React.FunctionComponent = () => {
     },
     onSuccess() {
       setFormData({} as FormData);
+      setPreviousFormData(formData);
       setFile(null);
       setImage(null);
       setIsSuccess(true);
     },
   });
   const [formData, setFormData] = useState<FormData>({} as FormData);
+  const [previousFormData, setPreviousFormData] = useState<FormData | null>(
+    null
+  );
+
   const { status, data: session } = useSession();
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -47,18 +57,23 @@ const UserCreation: React.FunctionComponent = () => {
     });
   };
   const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const dob = new Date(formData.dob);
     if (file) {
       event.preventDefault();
       try {
         const imageUrl = await uploadFile(file, formData.name, "user-images");
+        if (previousFormData == formData) {
+          setErrorString("Data already inserted");
+          return;
+        }
         if (imageUrl) {
-          createUser.mutate({ ...formData, imageUrl: imageUrl });
+          createUser.mutate({ ...formData, imageUrl: imageUrl, dob: dob });
         }
       } catch (error) {
         setErrorString("Failed to upload file");
       }
     } else {
-      createUser.mutate({ ...formData, imageUrl: "" });
+      createUser.mutate({ ...formData, imageUrl: "", dob: dob });
     }
   };
   const handleLocalFileSelection = (
@@ -79,10 +94,6 @@ const UserCreation: React.FunctionComponent = () => {
     if (fileInput) fileInput.click();
   };
 
-  // const handleSubmit = () => {
-  //   createUser.mutate(formData);
-  //   console.log(formData);
-  // };
   const {
     data: centres,
     isError,
@@ -158,23 +169,41 @@ const UserCreation: React.FunctionComponent = () => {
             placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none "
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none "
           />
           <input
             name="email"
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
-            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none"
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
           />
-
+          <input
+            name="address"
+            placeholder="Address"
+            value={formData.address}
+            onChange={handleChange}
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
+          />
+          <input
+            name="dob"
+            placeholder="Date Of Birth"
+            type="date"
+            value={formData.dob}
+            onChange={handleChange}
+            className={`h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none ${
+              formData.dob == null || formData.dob == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+          />
           <input
             name="password"
             type="password"
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none"
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
           />
           <select
             name="userType"
@@ -209,7 +238,37 @@ const UserCreation: React.FunctionComponent = () => {
             placeholder="Contact Number"
             value={formData.phoneNumber}
             onChange={handleChange}
-            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none"
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
+          />
+          <select
+            name="idProofType"
+            value={formData.idProofType}
+            onChange={handleChange}
+            className={`h-12 w-4/5 justify-self-center border-b border-b-[#919191] focus:outline-none ${
+              formData.idProofType == null || formData.idProofType == ""
+                ? "text-gray-400"
+                : "text-black"
+            }`}
+          >
+            <option selected disabled value="">
+              Select ID Proof
+            </option>
+            <option value="Aadhar" className="text-black">
+              Aadhar
+            </option>
+            <option value="PAN" className="text-black">
+              PAN
+            </option>
+            <option value=" Voter card" className="text-black">
+              Voter card
+            </option>
+          </select>
+          <input
+            name="idProof"
+            value={formData.idProof}
+            onChange={handleChange}
+            placeholder="ID proof number"
+            className="h-12 w-4/5 justify-self-center border-b border-b-[#919191]  focus:outline-none"
           />
         </div>
         <div className="flex gap-x-6 self-center justify-self-center">

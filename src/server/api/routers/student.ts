@@ -2,7 +2,26 @@ import { ReaddmissionInput, StudentInput } from "~/types";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { $Enums } from "@prisma/client";
+import { prisma } from "~/server/db";
+async function generateCustomStudentId() {
+  const lastUser = await prisma.student.findFirst({
+    orderBy: { studentId: "desc" },
+  });
 
+  let newIdNumber = 1;
+
+  if (lastUser) {
+    const lastId = lastUser.studentId;
+    const match = lastId.match(/(\d+)$/); // Extract numeric part
+    if (match) {
+      newIdNumber = parseInt(match[0]) + 1;
+    }
+  }
+
+  // Format new ID
+  const newId = `PROIQ/S/${String(newIdNumber).padStart(5, "0")}`;
+  return newId;
+}
 export const studentRouter = createTRPCRouter({
   count: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.student.count();
@@ -10,11 +29,13 @@ export const studentRouter = createTRPCRouter({
   create: protectedProcedure
     .input(StudentInput)
     .mutation(async ({ ctx, input }) => {
+      const id = await generateCustomStudentId();
       return ctx.prisma.student.create({
         data: {
+          studentId: id,
           address: input.address,
-          classTiming: input.classTiming,
-          courseDuration: input.courseDuration,
+          dob: input.dob,
+          status: $Enums.UserStatus.CONTINUE,
           course: {
             connect: input.courseNames.map((courseName) => ({
               name: courseName,
@@ -48,8 +69,7 @@ export const studentRouter = createTRPCRouter({
         },
         data: {
           address: input.address,
-          classTiming: input.classTiming,
-          courseDuration: input.courseDuration,
+
           course: {
             connect: input.courseNames.map((courseName) => ({
               name: courseName,
@@ -63,6 +83,8 @@ export const studentRouter = createTRPCRouter({
           parentContactNumber1: input.parentContactNumber1,
           parentName: input.parentName,
           parentOccupation: input.parentOccupation,
+          dob: input.dob,
+          status: input.status as $Enums.UserStatus,
           parentContactNumber2: input.parentContactNumber2,
           centre: {
             connect: {
@@ -130,13 +152,14 @@ export const studentRouter = createTRPCRouter({
             },
           },
           classDays: true,
-          classTiming: true,
+          dob: true,
+          status: true,
           course: {
             select: {
               name: true,
             },
           },
-          courseDuration: true,
+
           idProof: true,
           idProofType: true,
           imageUrl: true,
@@ -231,13 +254,14 @@ export const studentRouter = createTRPCRouter({
           },
         },
         classDays: true,
-        classTiming: true,
+        dob: true,
+        status: true,
         course: {
           select: {
             name: true,
           },
         },
-        courseDuration: true,
+
         idProof: true,
         idProofType: true,
         imageUrl: true,

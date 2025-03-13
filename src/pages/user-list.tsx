@@ -34,7 +34,7 @@ const UserList: React.FunctionComponent = () => {
       <div className="flex w-full flex-col items-center justify-start gap-y-7">
         <div className="relative mt-4 flex w-full flex-row items-center justify-end px-[5%] py-7 lg:flex-col lg:px-[10%]">
           <h1 className=" text-3xl md:absolute md:left-1/2 md:-translate-x-1/2">
-            Centre <span className="text-[#DCA200]"> List</span>
+            User <span className="text-[#DCA200]"> List</span>
           </h1>
           <Link
             className="rounded-full bg-[#FCD56C] px-4 py-2 text-[#202B5D] shadow-md hover:bg-[#FABA09] lg:self-end"
