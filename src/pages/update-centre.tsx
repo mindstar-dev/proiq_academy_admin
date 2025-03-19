@@ -1,8 +1,8 @@
 import { Modal } from "@mui/material";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { useState } from "react";
-import CustomDropdown from "~/components/customDropdown";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import ErrorPopup from "~/components/errorPopup";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
@@ -11,34 +11,30 @@ import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 interface CentreForm {
   name: string;
-  centreNames: string[];
-  facultyNames: string[];
+  location: string;
 }
-const CreateCourse: React.FunctionComponent = () => {
+const UpdateCentre: React.FunctionComponent = () => {
   const [formData, setFormData] = useState<CentreForm>({} as CentreForm);
+  const router = useRouter();
+  const { id } = router.query ?? " ";
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
-
   const { status, data: session } = useSession();
-
   const {
-    data: centres,
+    data: centreData,
     isError,
     isLoading,
-  } = api.centre.getAllNames.useQuery();
-  const {
-    data: users,
-    isError: isUsersError,
-    isLoading: isUsersLoading,
-  } = api.user.getAll.useQuery();
-  const filteredUserNames: string[] =
-    users
-      ?.filter((user) =>
-        user.centres?.some((centre: { name: string }) =>
-          formData.centreNames?.includes(centre.name)
-        )
-      )
-      .map((user) => `${user.name}, ${user.email}`) || [];
+  } = api.centre.getById.useQuery({
+    id: id as string,
+  });
+  useEffect(() => {
+    if (centreData) {
+      setFormData({
+        location: centreData.location,
+        name: centreData.name,
+      });
+    }
+  }, [centreData]);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -48,10 +44,10 @@ const CreateCourse: React.FunctionComponent = () => {
   const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted:", formData);
-    createCourse.mutate(formData);
+    updateCentre.mutate({ ...formData, id: centreData!.id });
   };
 
-  const createCourse = api.course.create.useMutation({
+  const updateCentre = api.centre.update.useMutation({
     onError(error) {
       setErrorString(error.message);
     },
@@ -65,19 +61,13 @@ const CreateCourse: React.FunctionComponent = () => {
       <ErrorScreen errorString="You dont have permission to access this screen" />
     );
   }
-  if (status == "loading" || isLoading || isUsersLoading) {
+  if (status == "loading" || isLoading) {
     return <LoadingScreen />;
   }
-  if (isError || isUsersError) {
-    return (
-      <ErrorScreen
-        errorString="Error Occured"
-        onClick={() => {
-          setErrorString("");
-        }}
-      />
-    );
+  if (isError) {
+    return <ErrorScreen errorString="Error occurred contact developers" />;
   }
+
   return (
     <MainPageTemplate>
       <form
@@ -86,43 +76,31 @@ const CreateCourse: React.FunctionComponent = () => {
       >
         <div className="relative mt-4 flex w-full flex-row items-center justify-end px-[5%] py-7 lg:flex-col lg:px-[10%]">
           <h1 className=" text-3xl md:absolute md:left-1/2 md:-translate-x-1/2">
-            Course <span className="text-[#DCA200]"> Registration</span>
+            Update <span className="text-[#DCA200]"> Centre Data</span>
           </h1>
           <Link
             className="rounded-full bg-[#FCD56C] px-4 py-2 text-[#202B5D] shadow-md hover:bg-[#FABA09] lg:self-end"
-            href="course-list"
+            href="centre-list"
           >
-            View All Courses
+            View All Centres
           </Link>
         </div>
+
         <div className="grid w-full max-w-[90%] grid-cols-1 self-center sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 lg:gap-x-[10%]">
           <input
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Course Name"
+            placeholder="Full Name"
             className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:col-span-2 lg:justify-self-end"
           />
-          <CustomDropdown
-            className="w-full"
-            selectedValues={formData.centreNames}
-            setSelectedValues={(value) =>
-              setFormData({ ...formData, centreNames: value })
-            }
-            placeHolder="Select Centres"
-            values={centres}
-          />
-          <CustomDropdown
-            className="w-full"
-            selectedValues={formData.facultyNames}
-            setSelectedValues={(value) =>
-              setFormData({
-                ...formData,
-                facultyNames: value,
-              })
-            }
-            placeHolder="Select Faculties"
-            values={filteredUserNames}
+
+          <input
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="Full Address"
+            className="col-span-1 h-12 w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:col-span-2 lg:justify-self-end"
           />
         </div>
 
@@ -155,7 +133,23 @@ const CreateCourse: React.FunctionComponent = () => {
           onClick={() => {
             setIsSuccess(false);
           }}
-          message="Course registered succesfully"
+          message="Centre created succesfully"
+        />
+      </Modal>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={isScuccess}
+        onClose={() => {
+          setIsSuccess(false);
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <SuccessPopup
+          onClick={() => {
+            setIsSuccess(false);
+          }}
+          message="Center updated succesfully"
         />
       </Modal>
       <Modal
@@ -177,4 +171,4 @@ const CreateCourse: React.FunctionComponent = () => {
     </MainPageTemplate>
   );
 };
-export default CreateCourse;
+export default UpdateCentre;

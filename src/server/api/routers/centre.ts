@@ -1,11 +1,12 @@
 import { z } from "zod";
+import UpdateCentre from "~/pages/update-centre";
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { CentreInput } from "~/types";
+import { CentreInput, UpdateCentreInput } from "~/types";
 async function generateCustomCentreId() {
   const lastUser = await prisma.centre.findFirst({
     orderBy: { id: "desc" },
@@ -45,6 +46,9 @@ export const centreRouter = createTRPCRouter({
             name: true,
           },
         },
+      },
+      orderBy: {
+        id: "asc",
       },
     });
     return centres;
@@ -103,7 +107,20 @@ export const centreRouter = createTRPCRouter({
 
       return userCentres?.centres.map((centre) => centre.name) || []; // Return only names
     }),
-
+  getById: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const centres = await ctx.prisma.centre.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+      return centres;
+    }),
   create: protectedProcedure
     .input(CentreInput)
     .mutation(async ({ ctx, input }) => {
@@ -111,6 +128,19 @@ export const centreRouter = createTRPCRouter({
       return ctx.prisma.centre.create({
         data: {
           id: id,
+          location: input.location,
+          name: input.name,
+        },
+      });
+    }),
+  update: protectedProcedure
+    .input(UpdateCentreInput)
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.centre.update({
+        where: {
+          id: input.id,
+        },
+        data: {
           location: input.location,
           name: input.name,
         },

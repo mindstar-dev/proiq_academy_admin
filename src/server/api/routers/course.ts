@@ -5,7 +5,7 @@ import {
   protectedProcedure,
 } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { CourseInput } from "~/types";
+import { CourseInput, UpdateCourseInput } from "~/types";
 async function generateCustomCourseId() {
   const lastUser = await prisma.course.findFirst({
     orderBy: { id: "desc" },
@@ -49,6 +49,9 @@ export const courseRouter = createTRPCRouter({
             name: true,
           },
         },
+      },
+      orderBy: {
+        id: "asc",
       },
     });
     return courses;
@@ -133,18 +136,80 @@ export const courseRouter = createTRPCRouter({
 
       return courses;
     }),
+  getById: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const course = await ctx.prisma.course.findUnique({
+        where: {
+          id: input.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          faculty: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          centre: {
+            select: { name: true },
+          },
+        },
+      });
+      if (!course) return null;
+
+      // Map faculty and centre to extract only the ids
+      const facultyIds = course.faculty.map((f) => `${f.name}, ${f.email}`);
+      const centreIds = course.centre.map((c) => c.name);
+
+      return {
+        id: course.id,
+        name: course.name,
+        faculty: facultyIds,
+        centre: centreIds,
+      };
+    }),
   create: protectedProcedure
     .input(CourseInput)
     .mutation(async ({ ctx, input }) => {
       const id = await generateCustomCourseId();
-      const emails = input.facultyIds.map((str) => str.split(", ").pop());
-
+      const emails = input.facultyNames.map((str) => str.split(", ").pop());
       return ctx.prisma.course.create({
         data: {
           id: id,
           name: input.name,
           centre: {
-            connect: input.centreIds.map((centreName) => ({
+            connect: input.centreNames.map((centreName) => ({
+              name: centreName,
+            })),
+          },
+          faculty: {
+            connect: emails.map((facultyEmail) => ({
+              email: facultyEmail,
+            })),
+          },
+        },
+      });
+    }),
+  update: protectedProcedure
+    .input(UpdateCourseInput)
+    .mutation(async ({ ctx, input }) => {
+      const id = await generateCustomCourseId();
+      const emails = input.facultyNames.map((str) => str.split(", ").pop());
+      return ctx.prisma.course.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          id: id,
+          name: input.name,
+          centre: {
+            connect: input.centreNames.map((centreName) => ({
               name: centreName,
             })),
           },

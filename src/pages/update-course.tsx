@@ -1,7 +1,8 @@
 import { Modal } from "@mui/material";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import CustomDropdown from "~/components/customDropdown";
 import ErrorPopup from "~/components/errorPopup";
 import ErrorScreen from "~/components/errorScreen";
@@ -9,18 +10,25 @@ import LoadingScreen from "~/components/loadingScreen";
 import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
-interface CentreForm {
+interface CourseForm {
   name: string;
   centreNames: string[];
   facultyNames: string[];
 }
-const CreateCourse: React.FunctionComponent = () => {
-  const [formData, setFormData] = useState<CentreForm>({} as CentreForm);
+const UpdateCourse: React.FunctionComponent = () => {
+  const [formData, setFormData] = useState<CourseForm>({} as CourseForm);
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
-
+  const router = useRouter();
+  const { id } = router.query ?? " ";
   const { status, data: session } = useSession();
-
+  const {
+    data: courseData,
+    isError: isCourseDataError,
+    isLoading: isCourseDataLoading,
+  } = api.course.getById.useQuery({
+    id: id as string,
+  });
   const {
     data: centres,
     isError,
@@ -31,6 +39,15 @@ const CreateCourse: React.FunctionComponent = () => {
     isError: isUsersError,
     isLoading: isUsersLoading,
   } = api.user.getAll.useQuery();
+  useEffect(() => {
+    if (courseData) {
+      setFormData({
+        name: courseData.name,
+        facultyNames: courseData.faculty,
+        centreNames: courseData.centre,
+      });
+    }
+  }, [courseData, id]);
   const filteredUserNames: string[] =
     users
       ?.filter((user) =>
@@ -48,10 +65,10 @@ const CreateCourse: React.FunctionComponent = () => {
   const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted:", formData);
-    createCourse.mutate(formData);
+    updateCourse.mutate({ ...formData, id: courseData!.id });
   };
 
-  const createCourse = api.course.create.useMutation({
+  const updateCourse = api.course.update.useMutation({
     onError(error) {
       setErrorString(error.message);
     },
@@ -65,10 +82,15 @@ const CreateCourse: React.FunctionComponent = () => {
       <ErrorScreen errorString="You dont have permission to access this screen" />
     );
   }
-  if (status == "loading" || isLoading || isUsersLoading) {
+  if (
+    status == "loading" ||
+    isLoading ||
+    isUsersLoading ||
+    isCourseDataLoading
+  ) {
     return <LoadingScreen />;
   }
-  if (isError || isUsersError) {
+  if (isError || isUsersError || isCourseDataError) {
     return (
       <ErrorScreen
         errorString="Error Occured"
@@ -86,7 +108,7 @@ const CreateCourse: React.FunctionComponent = () => {
       >
         <div className="relative mt-4 flex w-full flex-row items-center justify-end px-[5%] py-7 lg:flex-col lg:px-[10%]">
           <h1 className=" text-3xl md:absolute md:left-1/2 md:-translate-x-1/2">
-            Course <span className="text-[#DCA200]"> Registration</span>
+            Update <span className="text-[#DCA200]"> Course Data</span>
           </h1>
           <Link
             className="rounded-full bg-[#FCD56C] px-4 py-2 text-[#202B5D] shadow-md hover:bg-[#FABA09] lg:self-end"
@@ -129,7 +151,7 @@ const CreateCourse: React.FunctionComponent = () => {
         <div className="flex gap-x-6 self-center justify-self-center pb-7">
           <button
             type="button"
-            onClick={() => setFormData({} as CentreForm)}
+            onClick={() => setFormData({} as CourseForm)}
             className="rounded bg-[#202B5D] px-8 py-3 text-white"
           >
             Cancel
@@ -155,7 +177,7 @@ const CreateCourse: React.FunctionComponent = () => {
           onClick={() => {
             setIsSuccess(false);
           }}
-          message="Course registered succesfully"
+          message="Course updated succesfully"
         />
       </Modal>
       <Modal
@@ -177,4 +199,4 @@ const CreateCourse: React.FunctionComponent = () => {
     </MainPageTemplate>
   );
 };
-export default CreateCourse;
+export default UpdateCourse;

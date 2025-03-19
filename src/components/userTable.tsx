@@ -54,21 +54,6 @@ const UserTable: React.FunctionComponent<CentreTableProps> = ({ users }) => {
   };
   return (
     <div className="w-full py-6">
-      {/* <div className="relative flex w-full flex-col-reverse items-start justify-start gap-y-2 py-7 lg:flex-row">
-        <div className="mb-4 flex space-x-2 self-start">
-          <input
-            type="text"
-            placeholder="Search Student"
-            className="w-full rounded-md border p-2"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button className="rounded-md bg-yellow-500 px-4 py-2 text-white">
-            🔍
-          </button>
-        </div>
-      </div> */}
-
       <div
         className={`w-full overflow-x-auto ${
           isDragging ? "cursor-grabbing" : "cursor-grab"

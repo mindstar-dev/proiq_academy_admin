@@ -10,7 +10,7 @@ const SideBar: React.FunctionComponent = () => {
   const router = useRouter();
 
   return (
-    <div className="font-poppins hidden min-h-screen w-[270px] min-w-[270px] flex-col bg-[#202B5D] text-white lg:flex">
+    <div className="font-poppins hidden min-h-screen w-1/5 min-w-[20%] flex-col bg-[#202B5D] text-white lg:flex">
       <div className="container flex h-full flex-col items-center">
         <div className="logo mb-5 mt-6 w-[130px]">
           <Image
