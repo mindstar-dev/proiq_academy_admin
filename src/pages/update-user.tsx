@@ -136,7 +136,7 @@ export default function UpdateUser() {
       >
         <div className="flex gap-x-4 self-center px-[10%] pt-7">
           <h1 className="self-center py-7 text-3xl">
-            Update Student <span className="text-[#DCA200]"> Data</span>
+            Update User <span className="text-[#DCA200]"> Data</span>
           </h1>
           <div className="relative h-24 w-24 self-center">
             {/* Hidden file input */}
@@ -230,12 +230,13 @@ export default function UpdateUser() {
             </option>
           </select>
           <CustomDropdown
-            selectedValues={userData?.centres ?? []}
-            setSelectedValues={(value) =>
-              setFormData({ ...formData, centres: value })
-            }
+            selectedValues={formData?.centres ?? []}
+            setSelectedValues={(value) => {
+              setFormData({ ...formData, centres: value });
+            }}
             placeHolder="Select Centres"
             values={centres as []}
+            className=""
           />
           <input
             name="phoneNumber"
@@ -332,7 +333,7 @@ export default function UpdateUser() {
             onClick={() => {
               setIsSuccess(false);
             }}
-            message="Student updated succesfully"
+            message="User updated succesfully"
           />
         </Modal>
       </form>

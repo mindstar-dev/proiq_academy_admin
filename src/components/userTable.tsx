@@ -76,7 +76,9 @@ const UserTable: React.FunctionComponent<CentreTableProps> = ({ users }) => {
               <th className="border-b border-r border-dashed p-2">Phone No.</th>
               <th className="border-b border-r border-dashed p-2">Address</th>
               <th className="border-b border-r border-dashed p-2">User Type</th>
-              <th className="border-b border-r border-dashed p-2">Centres</th>
+              <th className="w-[454px] border-b border-r border-dashed p-2">
+                Centres
+              </th>
               <th className="border-b border-r border-dashed p-2">Courses</th>
               <th className="border-b border-r border-dashed p-2">Status</th>
               <th className="border-b border-r border-dashed p-2">Actions</th>
@@ -119,7 +121,7 @@ const UserTable: React.FunctionComponent<CentreTableProps> = ({ users }) => {
                 <td className="border border-dashed p-2">{user.phoneNumber}</td>
                 <td className="border border-dashed p-2">{user.address}</td>
                 <td className="border border-dashed p-2">{user.userType}</td>
-                <td className="border border-dashed p-2">
+                <td className=" min-w-[454px] text-wrap border border-dashed p-2">
                   {user.centres.map((c) => c.name).join(", ") || "N/A"}
                 </td>
                 <td className="border border-dashed p-2">

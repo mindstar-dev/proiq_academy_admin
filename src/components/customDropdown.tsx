@@ -35,6 +35,9 @@ const CustomDropdown: React.FunctionComponent<CustomDropdownProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  console.log("dropdown values", values);
+  console.log("dropdown selected values", selectedValues);
+
   return (
     <div
       className={`relative w-4/5 justify-self-center ${className}`}
@@ -42,7 +45,9 @@ const CustomDropdown: React.FunctionComponent<CustomDropdownProps> = ({
     >
       {/* Dropdown Button */}
       <div
-        className="flex h-12 cursor-pointer items-center justify-between border-b border-b-[#919191]"
+        className={`flex min-h-12 cursor-pointer justify-between border-b border-b-[#919191] ${
+          selectedValues.length > 3 ? "items-baseline" : "items-center"
+        }`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span
