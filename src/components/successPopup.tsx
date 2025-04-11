@@ -7,7 +7,7 @@ interface SuccessPopupProps {
 }
 const SuccessPopup: React.FunctionComponent<SuccessPopupProps> = (props) => {
   return (
-    <div className="flex h-2/5 w-2/5 flex-col items-center justify-evenly bg-white">
+    <div className="flex h-2/5 w-4/5 flex-col items-center justify-evenly bg-white md:w-3/5 lg:w-2/5">
       <Image src={successImg} alt="" className="h-24 w-24" />
       <p>{props.message}</p>
       <button

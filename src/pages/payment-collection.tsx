@@ -118,7 +118,7 @@ const PaymentCollection: React.FunctionComponent = () => {
           </Link>
         </div>
         <form
-          className="grid w-4/5 grid-cols-1 gap-x-4 self-center py-7 lg:grid-cols-2"
+          className="flex w-4/5 flex-col gap-x-4 self-center py-7 lg:grid lg:grid-cols-2"
           onSubmit={handleSubmit}
         >
           <select
