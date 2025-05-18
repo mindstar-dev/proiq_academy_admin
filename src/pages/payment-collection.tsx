@@ -221,6 +221,16 @@ const PaymentCollection: React.FunctionComponent = () => {
                 </option>
               ))}
           </select>
+
+          <div className="w-full lg:col-span-2">
+            {formData.paymentFor !== "Readdmission Fees" && (
+              <CustomMonthDropdown
+                setSelectedValues={(dateArray) => {
+                  setFormData({ ...formData, paymentMonths: dateArray });
+                }}
+              />
+            )}
+          </div>
           <select
             className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
               formData.status == null || formData.status == ""
@@ -243,13 +253,6 @@ const PaymentCollection: React.FunctionComponent = () => {
               PENDING
             </option>
           </select>
-          {formData.paymentFor !== "Readdmission Fees" && (
-            <CustomMonthDropdown
-              setSelectedValues={(dateArray) => {
-                setFormData({ ...formData, paymentMonths: dateArray });
-              }}
-            />
-          )}
           <input
             name="amountPaid"
             onChange={handleChange}
@@ -279,6 +282,11 @@ const PaymentCollection: React.FunctionComponent = () => {
         <SuccessPopup
           onClick={() => {
             setIsSuccess(false);
+            setFormData({
+              centreId: "",
+              courseId: "",
+              paymentMonths: [] as Date[],
+            } as PaymentCollectionForm);
           }}
           message="Payment Collected succesfully"
         />
