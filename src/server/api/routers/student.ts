@@ -286,6 +286,9 @@ export const studentRouter = createTRPCRouter({
           },
         },
       },
+      orderBy: {
+        studentId: "asc",
+      },
     });
     return students;
   }),

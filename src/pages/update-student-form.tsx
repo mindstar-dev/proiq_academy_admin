@@ -70,7 +70,7 @@ export default function UpdateStudentForm() {
         setErrorString("Failed to upload file");
       }
     } else {
-      updateStudent.mutate({ ...formData, imageUrl: "", dob: dob });
+      updateStudent.mutate({ ...formData, dob: dob });
     }
   };
   const handleLocalFileSelection = (
