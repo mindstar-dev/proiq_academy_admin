@@ -104,6 +104,13 @@ const ReaddmissionTable: React.FunctionComponent<ReaddmissionTableProps> = ({
         readdmissionCourseId: newCourseId,
         readdmissionPaymentAmount: payment,
       });
+      console.log("localdata", {
+        studentData: localData,
+        centreId: centreId,
+        courseId: previousCourseId,
+        readdmissionCourseId: newCourseId,
+        readdmissionPaymentAmount: payment,
+      });
     }
   };
   const tableContainerRef = useRef<HTMLDivElement>(null);

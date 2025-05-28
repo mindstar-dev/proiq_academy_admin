@@ -12,7 +12,9 @@ interface StudentData {
   payments: {
     amountPaid: number;
     paymentDate: Date;
+    paymentMonths: Date[];
     paymentFor: string;
+    dateTime: Date;
   }[];
   name: string;
   imageUrl: string;
@@ -95,8 +97,10 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
             <th className="border p-2">Class Days</th>
             <th className="border p-2">Readdmission</th>
             <th className="border p-2">Readdmission Payment Status</th>
-            <th className="border p-2">Last Payment</th>
             <th className="border p-2">Last Payment For</th>
+
+            <th className="border p-2">Last Payment Amount</th>
+            <th className="border p-2">Last Payment Months</th>
             <th className="border p-2">Last Payment Date</th>
             <th className="border p-2">Student Status</th>
           </tr>
@@ -169,13 +173,23 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
                     : "N/A"}
                 </td>
                 <td className="border p-2">
-                  {student?.payments[0]?.amountPaid || "N/A"}
-                </td>
-                <td className="border p-2">
                   {student?.payments[0]?.paymentFor || "N/A"}
                 </td>
                 <td className="border p-2">
-                  {student?.payments[0]?.paymentDate?.toDateString() || "N/A"}
+                  {student?.payments[0]?.amountPaid || "N/A"}
+                </td>
+                <td className="border p-2">
+                  {student?.payments[0]?.paymentMonths
+                    .map(
+                      (date) =>
+                        `${date.toLocaleString("default", {
+                          month: "short",
+                        })}/${date.getFullYear()}`
+                    )
+                    .join(", ")}
+                </td>
+                <td className="border p-2">
+                  {student?.payments[0]?.dateTime?.toDateString() || "N/A"}
                 </td>
                 <td className="border p-2">{student?.status || "N/A"}</td>
               </tr>

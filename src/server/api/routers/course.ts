@@ -132,6 +132,9 @@ export const courseRouter = createTRPCRouter({
             },
           },
         },
+        orderBy: {
+          id: "asc",
+        },
       });
 
       return courses;

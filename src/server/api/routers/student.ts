@@ -105,6 +105,7 @@ export const studentRouter = createTRPCRouter({
             studentId: studentData.studentId,
           },
           data: {
+            studentId: studentData.studentId,
             readdmission: studentData.readdmission,
             readdmissionPaymentStatus: studentData.readdmissionPaymentStatus,
             readdmissionCourseId: input.readdmissionCourseId,
@@ -283,6 +284,8 @@ export const studentRouter = createTRPCRouter({
             amountPaid: true,
             paymentDate: true,
             paymentFor: true,
+            paymentMonths: true,
+            dateTime: true,
           },
         },
       },
