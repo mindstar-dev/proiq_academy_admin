@@ -76,6 +76,7 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
   const handleSubmit = async () => {
     if (localData) {
       await registerattendance.mutate(localData);
+      // console.log(localData);
     }
   };
   return (
@@ -106,6 +107,8 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
                 ID
               </th>
               <th className="border-b border-r border-dashed p-2">Name</th>
+              <th className="border-b border-r border-dashed p-2">Present</th>
+              <th className="border-b border-r border-dashed p-2">Absent</th>
               <th className="border-b border-r border-dashed p-2">
                 Parent Name
               </th>
@@ -113,8 +116,6 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
               <th className="border-b border-r border-dashed p-2">Course</th>
               <th className="border-b border-r border-dashed p-2">Date</th>
               <th className="border-b border-r border-dashed p-2">Time</th>
-              <th className="border-b border-r border-dashed p-2">Present</th>
-              <th className="border-b border-r border-dashed p-2">Absent</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-transparent">
@@ -125,21 +126,6 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
                 </td>
                 <td className="border border-dashed p-2">
                   {student.student.name}
-                </td>
-                <td className="border border-dashed p-2">
-                  {student.student.parentName}
-                </td>
-                <td className="border border-dashed p-2">
-                  {student.centre.name}
-                </td>
-                <td className="border border-dashed p-2">
-                  {student.course.name}
-                </td>
-                <td className="border border-dashed p-2">
-                  {date.toDateString()}
-                </td>
-                <td className="border border-dashed p-2">
-                  {date.toLocaleTimeString()}
                 </td>
                 <td className="cursor-pointer items-center justify-center border border-dashed p-2 text-center text-green-500">
                   <div className="flex w-full items-center justify-center">
@@ -176,6 +162,21 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
                       ) : null}
                     </div>
                   </div>
+                </td>
+                <td className="border border-dashed p-2">
+                  {student.student.parentName}
+                </td>
+                <td className="border border-dashed p-2">
+                  {student.centre.name}
+                </td>
+                <td className="border border-dashed p-2">
+                  {student.course.name}
+                </td>
+                <td className="border border-dashed p-2">
+                  {date.toDateString()}
+                </td>
+                <td className="border border-dashed p-2">
+                  {date.toLocaleTimeString()}
                 </td>
               </tr>
             ))}

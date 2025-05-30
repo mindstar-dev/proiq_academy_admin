@@ -117,6 +117,7 @@ export const attendanceRouter = createTRPCRouter({
   markattendance: protectedProcedure
     .input(AttendanceInput)
     .mutation(async ({ ctx, input }) => {
+      console.log("date", input[0]?.date.getTimezoneOffset());
       return await ctx.prisma.$transaction(
         input.map((attendance) =>
           ctx.prisma.attendance.upsert({
@@ -124,7 +125,7 @@ export const attendanceRouter = createTRPCRouter({
               studentId_courseId_date: {
                 studentId: attendance.studentId,
                 courseId: attendance.courseId,
-                date: attendance.date,
+                date: attendance.date.toISOString(),
               },
             },
             update: {
@@ -134,7 +135,7 @@ export const attendanceRouter = createTRPCRouter({
               studentId: attendance.studentId,
               courseId: attendance.courseId,
               centreId: attendance.centreId,
-              date: attendance.date,
+              date: attendance.date.toISOString(),
               status: attendance.status,
             },
           })

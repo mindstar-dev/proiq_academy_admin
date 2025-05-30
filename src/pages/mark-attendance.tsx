@@ -46,7 +46,7 @@ const Markattendance: React.FunctionComponent = () => {
       <div className="container mx-auto p-6">
         <MarkAttendanceTable
           attendance={attendance}
-          date={new Date(date as string)}
+          date={new Date(date?.toLocaleString() as string)}
         />
       </div>
     </MainPageTemplate>
