@@ -203,21 +203,46 @@ export const courseRouter = createTRPCRouter({
     .input(UpdateCourseInput)
     .mutation(async ({ ctx, input }) => {
       const emails = input.facultyNames.map((str) => str.split(", ").pop());
-      return ctx.prisma.course.update({
-        where: {
-          id: input.id,
+
+      // First, fetch current connected centre and faculty names
+      const existingCourse = await ctx.prisma.course.findUnique({
+        where: { id: input.id },
+        include: {
+          centre: { select: { name: true } },
+          faculty: { select: { email: true } },
         },
+      });
+
+      // Get current centre and faculty names from DB
+      const existingCentreNames =
+        existingCourse?.centre.map((c) => c.name) || [];
+      const existingFacultyEmails =
+        existingCourse?.faculty.map((f) => f.email) || [];
+
+      // Determine which centres/faculty to disconnect
+      const centresToDisconnect = existingCentreNames
+        .filter((name) => !input.centreNames.includes(name))
+        .map((name) => ({ name }));
+
+      const facultiesToDisconnect = existingFacultyEmails
+        .filter((email) => !emails.includes(email))
+        .map((email) => ({ email }));
+
+      return ctx.prisma.course.update({
+        where: { id: input.id },
         data: {
           name: input.name,
+
           centre: {
-            connect: input.centreNames.map((centreName) => ({
-              name: centreName,
-            })),
+            // Disconnect removed centres
+            disconnect: centresToDisconnect,
+            // Connect new ones
+            connect: input.centreNames.map((name) => ({ name })),
           },
+
           faculty: {
-            connect: emails.map((facultyEmail) => ({
-              email: facultyEmail,
-            })),
+            disconnect: facultiesToDisconnect,
+            connect: emails.map((email) => ({ email })),
           },
         },
       });

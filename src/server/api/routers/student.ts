@@ -196,10 +196,13 @@ export const studentRouter = createTRPCRouter({
             name: input.centreName,
           },
           course: {
-            every: {
+            some: {
               name: input.courseName,
             },
           },
+        },
+        orderBy: {
+          name: "asc",
         },
       });
       return students;
@@ -240,6 +243,9 @@ export const studentRouter = createTRPCRouter({
           parentName: true,
           readdmission: true,
           readdmissionCourseId: true,
+        },
+        orderBy: {
+          name: "asc",
         },
       });
       return students;

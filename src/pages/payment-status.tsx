@@ -285,7 +285,7 @@ const PaymentStatus: React.FunctionComponent = () => {
                   className="text-black"
                   key={student.studentId}
                 >
-                  Name: {student.name}, Parent: {student.parentName}
+                  {student.name}, Parent: {student.parentName}
                 </option>
               );
             })}

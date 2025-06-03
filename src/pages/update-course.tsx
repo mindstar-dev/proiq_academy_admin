@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import CustomDropdown from "~/components/customDropdown";
 import ErrorPopup from "~/components/errorPopup";
 import ErrorScreen from "~/components/errorScreen";
+import LoadingPopup from "~/components/loadingPopup";
 import LoadingScreen from "~/components/loadingScreen";
 import SuccessPopup from "~/components/successPopup";
 import { MainPageTemplate } from "~/templates";
@@ -19,6 +20,8 @@ const UpdateCourse: React.FunctionComponent = () => {
   const [formData, setFormData] = useState<CourseForm>({} as CourseForm);
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
+  const [isLoading, setisLoading] = useState(false);
+
   const router = useRouter();
   const { id } = router.query ?? " ";
   const { status, data: session } = useSession();
@@ -32,7 +35,7 @@ const UpdateCourse: React.FunctionComponent = () => {
   const {
     data: centres,
     isError,
-    isLoading,
+    isLoading: isCentreDataLoading,
   } = api.centre.getAllNames.useQuery();
   const {
     data: users,
@@ -69,10 +72,15 @@ const UpdateCourse: React.FunctionComponent = () => {
   };
 
   const updateCourse = api.course.update.useMutation({
+    onMutate() {
+      setisLoading(true);
+    },
     onError(error) {
+      setisLoading(false);
       setErrorString(error.message);
     },
     onSuccess() {
+      setisLoading(false);
       setIsSuccess(true);
     },
   });
@@ -84,7 +92,7 @@ const UpdateCourse: React.FunctionComponent = () => {
   }
   if (
     status == "loading" ||
-    isLoading ||
+    isCentreDataLoading ||
     isUsersLoading ||
     isCourseDataLoading
   ) {
@@ -196,6 +204,17 @@ const UpdateCourse: React.FunctionComponent = () => {
           }}
           message={errorString}
         />
+      </Modal>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={isLoading}
+        onClose={() => {
+          setisLoading(false);
+        }}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <LoadingPopup />
       </Modal>
     </MainPageTemplate>
   );
