@@ -7,6 +7,8 @@ import { api } from "~/utils/api";
 import SuccessPopup from "./successPopup";
 import { Modal } from "@mui/material";
 import ErrorPopup from "./errorPopup";
+import LoadingPopup from "./loadingPopup";
+import { set } from "date-fns";
 
 interface ReaddmissionTableProps {
   students: ReaddmissionData[];
@@ -41,6 +43,7 @@ const ReaddmissionTable: React.FunctionComponent<ReaddmissionTableProps> = ({
   const [firstRender, setFirstRender] = useState(false);
   const [isScuccess, setIsSuccess] = useState(false);
   const [errorString, setErrorString] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     console.log("stu", students);
@@ -90,12 +93,15 @@ const ReaddmissionTable: React.FunctionComponent<ReaddmissionTableProps> = ({
   const readdmission = api.student.readmission.useMutation({
     onSuccess() {
       setIsSuccess(true);
+      setIsProcessing(false);
     },
     onError(error) {
       setErrorString(error.message);
+      setIsProcessing(false);
     },
   });
   const handleSubmit = async () => {
+    setIsProcessing(true);
     if (localData) {
       await readdmission.mutate({
         studentData: localData,
@@ -267,6 +273,14 @@ const ReaddmissionTable: React.FunctionComponent<ReaddmissionTableProps> = ({
           }}
           message={errorString}
         />
+      </Modal>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={isProcessing}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <LoadingPopup />
       </Modal>
     </div>
   );

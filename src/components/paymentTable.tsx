@@ -1,6 +1,8 @@
 import { type $Enums } from "@prisma/client";
 import type React from "react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import PrintablePaymentCard from "./paymentPrintableCard";
+import { useReactToPrint } from "react-to-print";
 interface Payment {
   student: {
     name: string;
@@ -28,6 +30,8 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   // Handle mouse down
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -50,6 +54,29 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
   const handleMouseUp = () => {
     setIsDragging(false);
   };
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Payment Receipt",
+  });
+
+  const onPrint = (payment: Payment) => {
+    setSelectedPayment(payment);
+  };
+
+  useEffect(() => {
+    if (!selectedPayment) return;
+    const print = async () => {
+      try {
+        await handlePrint();
+      } catch (err) {
+        console.log("Print error: ", err);
+      } finally {
+        setSelectedPayment(null);
+      }
+    };
+    print();
+  }, [selectedPayment, handlePrint]);
+
   return (
     <div
       ref={tableContainerRef}
@@ -64,7 +91,7 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
       <table className="w-full border-collapse border border-[#FCD56C]">
         <thead className="bg-[#FCD56C] text-white">
           <tr className="text-center">
-            <th className="border border-[#FCD56C] p-2">Payment ID</th>
+            {/* <th className="border border-[#FCD56C] p-2">Payment ID</th> */}
             <th className="border border-[#FCD56C] p-2">Student ID</th>
             <th className="border border-[#FCD56C] p-2">Name</th>
             <th className="border border-[#FCD56C] p-2">Parent Name</th>
@@ -75,14 +102,15 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
             <th className="border border-[#FCD56C] p-2">Payment For</th>
             <th className="border border-[#FCD56C] p-2">Amount</th>
             <th className="border border-[#FCD56C] p-2">Status</th>
+            <th className="border border-[#FCD56C] p-2">Print</th>
           </tr>
         </thead>
         <tbody>
           {payments.map((payment, index) => (
-            <tr key={index} className="text-center hover:bg-gray-50">
-              <td className="border border-[#FCD56C] p-2">
+            <tr key={index} className="text-center">
+              {/* <td className="border border-[#FCD56C] p-2">
                 {payment.id.substring(0, 8)}
-              </td>
+              </td> */}
               <td className="border border-[#FCD56C] p-2">
                 {payment.student.studentId}
               </td>
@@ -124,10 +152,32 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
               >
                 {payment.status}
               </td>
+              <td className="border border-[#FCD56C] p-1">
+                <button
+                  onClick={() => onPrint(payment)}
+                  className="text-white hover:underline bg-[#FCD56C] p-2 hover:shadow-xl rounded-md"
+                >
+                  Print
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <PrintablePaymentCard
+        ref={printRef}
+        amount={selectedPayment?.amountPaid.toString() ?? ""}
+        centre={selectedPayment?.centre.name.toString() ?? ""}
+        months={selectedPayment?.paymentMonths ?? []}
+        name={selectedPayment?.student.name ?? ""}
+        parentName={selectedPayment?.student.parentName ?? ""}
+        paymentFor={selectedPayment?.paymentFor ?? ""}
+        status={selectedPayment?.status ?? ""}
+        studentId={selectedPayment?.student.studentId ?? ""}
+        subject={selectedPayment?.course.name ?? ""}
+        date={selectedPayment?.dateTime.toISOString().split("T")[0] ?? ""}
+      />
     </div>
   );
 };

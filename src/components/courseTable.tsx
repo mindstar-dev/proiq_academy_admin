@@ -66,7 +66,7 @@ const CourseTable: React.FunctionComponent<CourseTableProps> = ({
         <div className="mb-4 flex space-x-2 self-start">
           <input
             type="text"
-            placeholder="Search Student"
+            placeholder="Search Course"
             className="w-full rounded-md border p-2"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

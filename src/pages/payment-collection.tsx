@@ -55,6 +55,8 @@ const PaymentCollection: React.FunctionComponent = () => {
     },
     onSuccess() {
       setIsSuccess(true);
+      setFormData({centreId: "",
+      courseId: "", amountPaid: '', paymentMonths: [] as Date[]} as PaymentCollectionForm);
     },
   });
   const handleChange = (
@@ -69,7 +71,7 @@ const PaymentCollection: React.FunctionComponent = () => {
     }));
   };
 
-  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+  const handleSubmit =  (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formattedData = {
       ...formData,
@@ -77,9 +79,10 @@ const PaymentCollection: React.FunctionComponent = () => {
 
       status: formData.status as "PAID" | "PENDING" | "PARTIAL", // Type assertion
     };
-    console.log("Form submitted:", formattedData);
 
-    createPayment.mutate(formattedData);
+     createPayment.mutate(formattedData);
+
+    
   };
   if (status == "unauthenticated") {
     return (
@@ -141,6 +144,9 @@ const PaymentCollection: React.FunctionComponent = () => {
             <option value="Readdmission Fees" className="text-black">
               Readdmission Fees
             </option>
+            <option value="New Addmission Fees" className="text-black">
+              New Addmission Fees
+            </option>
           </select>
           <select
             className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
@@ -180,6 +186,9 @@ const PaymentCollection: React.FunctionComponent = () => {
             <option selected disabled value="">
               Select Course
             </option>
+            <option selected disabled value="">
+              Select Course
+            </option>
             {courses.map((course) => {
               return (
                 <option
@@ -202,7 +211,7 @@ const PaymentCollection: React.FunctionComponent = () => {
             name="studentId"
             onChange={handleChange}
           >
-            <option selected disabled value="">
+            <option selected value="">
               Select Student
             </option>
             {students
@@ -257,6 +266,7 @@ const PaymentCollection: React.FunctionComponent = () => {
             name="amountPaid"
             onChange={handleChange}
             placeholder="Payable Amount"
+            value={formData.amountPaid}
             type="number"
             className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
           />

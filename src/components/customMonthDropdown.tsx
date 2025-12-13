@@ -35,6 +35,7 @@ const CustomMonthDropdown: React.FunctionComponent<CustomDropdownProps> = ({
   // Notify parent on change
   useEffect(() => {
     setSelectedValues(selectedDates);
+    console.log("Selected Dates:", selectedDates);
   }, [selectedDates]);
 
   const handleSelect = (monthIndex: number) => {

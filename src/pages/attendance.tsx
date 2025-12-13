@@ -101,7 +101,7 @@ const Attendance: React.FunctionComponent = () => {
           </select>
           <select
             className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
-              formData.courseId === "" ? "text-gray-400" : "text-black"
+              formData.courseId === "" ? "text-gray-400" : ""
             }`}
             value={formData.courseId}
             name="courseId"
@@ -110,6 +110,9 @@ const Attendance: React.FunctionComponent = () => {
             <option selected disabled value="">
               Select Course
             </option>
+            {courses.length>0 && <option value="All" className="text-black">
+              All
+            </option>}
             {courses?.map((course) => (
               <option value={course.id} className="text-black" key={course.id}>
                 {course.name}

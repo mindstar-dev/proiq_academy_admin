@@ -16,7 +16,6 @@ const Markattendance: React.FunctionComponent = () => {
   const {
     data: attendance,
     isError,
-
     isLoading,
   } = api.attendance.getDynamicattendance.useQuery({
     centreId: centreId as string,
@@ -31,7 +30,7 @@ const Markattendance: React.FunctionComponent = () => {
   if (status == "loading" || isLoading) {
     return <LoadingScreen />;
   }
-  if (errorString != "" || isError) {
+  if (isError || errorString != "") {
     return (
       <ErrorScreen
         errorString={errorString}

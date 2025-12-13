@@ -19,9 +19,9 @@ model Post {
     @@index([name])
 }
 
-model User{
-    id          String @id 
-    email       String @unique
+model User {
+    id          String     @id
+    email       String     @unique
     name        String
     password    String
     userType    String
@@ -36,93 +36,94 @@ model User{
     centres     Centre[]
 }
 
-model Demo{
+model Demo {
     id String @id
 }
 
-model Student{
-    studentId                       String @id 
-    name                            String
-    address                         String
-    parentName                      String
-    parentOccupation                String
-    parentContactNumber1            String
-    parentContactNumber2            String?
-    idProof                         String
-    idProofType                     String
-    centreId                        String
-    classDays                       String[]
-    imageUrl                        String
-    dob                             DateTime
-    readdmission                    Boolean
-    readdmissionPaymentStatus       Boolean
-    readdmissionCourseId            String?
-    status                          UserStatus
-    centre                          Centre @relation(fields: [centreId], references: [id], onDelete: Cascade)
-    attendance                      Attendance[]
-    payments                        Payment[]
-    course                          Course[]
-    createdAt                       DateTime @default(now()) @db.Timestamptz(5)
-    updatedAt                       DateTime @updatedAt @db.Timestamptz(5)
+model Student {
+    studentId                  String       @id
+    name                       String
+    address                    String
+    parentName                 String
+    parentOccupation           String
+    parentContactNumber1       String
+    parentContactNumber2       String?
+    idProof                    String
+    idProofType                String
+    centreId                   String
+    classDays                  String[]
+    imageUrl                   String
+    dob                        DateTime
+    readdmission               Boolean
+    readdmissionPaymentStatus  Boolean
+    newaddmission              Boolean
+    newAddmissionPaymentStatus Boolean
+    readdmissionCourseId       String?
+    status                     UserStatus
+    centre                     Centre       @relation(fields: [centreId], references: [id], onDelete: Cascade)
+    attendance                 Attendance[]
+    payments                   Payment[]
+    course                     Course[]
+    createdAt                  DateTime     @default(now()) @db.Timestamptz(5)
+    updatedAt                  DateTime     @updatedAt @db.Timestamptz(5)
 }
 
-
-model Course{
-    id              String @id
-    name            String @unique
-    faculty         User []
-    centre          Centre []
+model Course {
+    id              String       @id
+    name            String       @unique
+    faculty         User[]
+    centre          Centre[]
     studentMappings Student[]
     attendance      Attendance[]
     payments        Payment[]
 }
 
 model Centre {
-    id          String @id 
-    name        String @unique// Name of the institute
-    location    String // Address or location details
-    payments    Payment[]
-    students    Student[]
-    courses     Course[]
-    attendance  Attendance[]
-    faculties   User[]
+    id         String       @id
+    name       String       @unique // Name of the institute
+    location   String // Address or location details
+    payments   Payment[]
+    students   Student[]
+    courses    Course[]
+    attendance Attendance[]
+    faculties  User[]
 }
 
 model Attendance {
-    id                  String   @id @default(uuid()) // Unique identifier
-    studentId           String
-    courseId            String
-    centreId            String
-    date                DateTime // Date of the class
-    status              AttendanceStatus // Enum for attendance status
-    student             Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-    course              Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-    centre              Centre   @relation(fields: [centreId], references: [id], onDelete: Cascade)
-    @@unique([studentId, courseId, date]) // A student can only have one attendance record per class per date
+    id        String           @id @default(uuid()) // Unique identifier
+    studentId String
+    courseId  String
+    centreId  String
+    date      DateTime // Date of the class
+    status    AttendanceStatus // Enum for attendance status
+    student   Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+    course    Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    centre    Centre           @relation(fields: [centreId], references: [id], onDelete: Cascade)
 
+    @@unique([studentId, courseId, date]) // A student can only have one attendance record per class per date
 }
 
 model Payment {
-    id              String   @id @default(uuid()) 
-    studentId       String
-    centreId        String
-    courseId        String
-    amountPaid      Float    // Amount paid by the student
-    paymentDate     DateTime // Date of payment
-    paymentFor      String 
-    paymentMonths   DateTime[]
-    dateTime        DateTime @default(now()) @db.Timestamptz(5)
-    status          PaymentStatus // Enum: Paid, Pending, Partial
-    student         Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-    centre          Centre   @relation(fields: [centreId], references: [id], onDelete: Cascade)
-    course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-    @@unique([studentId, paymentDate,courseId,centreId]) // A student can only have one payment record per date
+    id            String        @id @default(uuid())
+    studentId     String
+    centreId      String
+    courseId      String
+    amountPaid    Float // Amount paid by the student
+    paymentDate   DateTime // Date of payment
+    paymentFor    String
+    paymentMonths DateTime[]
+    dateTime      DateTime      @default(now()) @db.Timestamptz(5)
+    status        PaymentStatus // Enum: Paid, Pending, Partial
+    student       Student       @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+    centre        Centre        @relation(fields: [centreId], references: [id], onDelete: Cascade)
+    course        Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+    @@unique([studentId, paymentDate, courseId, centreId]) // A student can only have one payment record per date
 }
 
 enum AttendanceStatus {
     PRESENT
     ABSENT
-    
 }
 
 enum PaymentStatus {
@@ -130,6 +131,7 @@ enum PaymentStatus {
     PENDING
     PARTIAL
 }
+
 enum UserStatus {
     CONTINUE
     DISCONTINUE

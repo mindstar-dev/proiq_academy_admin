@@ -7,6 +7,7 @@ import { api } from "~/utils/api";
 import SuccessPopup from "./successPopup";
 import { Modal } from "@mui/material";
 import ErrorPopup from "./errorPopup";
+import LoadingPopup from "./loadingPopup";
 
 interface AttendanceTableProps {
   attendance: attendanceData[];
@@ -39,6 +40,7 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
   const [firstRender, setFirstRender] = useState(false);
   const [isScuccess, setIsSuccess] = useState(false);
   const [errorString, setErrorString] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (attendance && !firstRender) {
@@ -68,14 +70,20 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
   const registerattendance = api.attendance.markattendance.useMutation({
     onSuccess() {
       setIsSuccess(true);
+      setIsProcessing(false);
+
     },
     onError(error) {
       setErrorString(error.message);
+      setIsProcessing(false);
+
     },
   });
   const handleSubmit = async () => {
+    setIsProcessing(true);
     if (localData) {
       await registerattendance.mutate(localData);
+
       // console.log(localData);
     }
   };
@@ -192,6 +200,7 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
           <button
             className="w-48 self-end justify-self-end rounded-lg bg-[#FCD56C] p-6 text-[#202B5D]"
             onClick={handleSubmit}
+            disabled={isProcessing}
           >
             Submit
           </button>
@@ -228,6 +237,14 @@ const MarkAttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
           }}
           message={errorString}
         />
+      </Modal>
+      <Modal
+        aria-labelledby="unstyled-modal-title"
+        aria-describedby="unstyled-modal-description"
+        open={isProcessing}
+        className="flex h-full w-full items-center justify-center"
+      >
+        <LoadingPopup />
       </Modal>
     </div>
   );

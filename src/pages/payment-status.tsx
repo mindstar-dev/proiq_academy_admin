@@ -1,10 +1,12 @@
 import { $Enums } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
 import ErrorScreen from "~/components/errorScreen";
 import LoadingScreen from "~/components/loadingScreen";
 import PaymentTable from "~/components/paymentTable";
+import PrintablePaymentTable from "~/components/printablePaymentTable";
 import { MainPageTemplate } from "~/templates";
 import { api } from "~/utils/api";
 interface PaymentStatusForm {
@@ -39,6 +41,8 @@ interface PaymentData {
 }
 const PaymentStatus: React.FunctionComponent = () => {
   const [errorString, setErrorString] = useState("");
+  const tableRef = useRef<HTMLDivElement>(null);
+
   const [formData, setFormData] = useState<PaymentStatusForm>({
     centreId: "",
     courseId: "",
@@ -109,6 +113,11 @@ const PaymentStatus: React.FunctionComponent = () => {
     formData.paymentFor,
     paymentData,
   ]);
+  const handlePrint = useReactToPrint({
+    contentRef: tableRef,
+    documentTitle: "Payment Receipt",
+    
+  });
   if (status == "unauthenticated") {
     return (
       <ErrorScreen errorString="You dont have permission to access this screen" />
@@ -173,6 +182,9 @@ const PaymentStatus: React.FunctionComponent = () => {
             <option value="Readdmission Fees" className="text-black">
               Readdmission Fees
             </option>
+            <option value="New Addmission Fees" className="text-black">
+              New Addmission Fees
+            </option>
           </select>
           <select
             className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
@@ -200,17 +212,13 @@ const PaymentStatus: React.FunctionComponent = () => {
             })}
           </select>
           <select
-            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none ${
-              formData.courseId == null || formData.courseId == ""
-                ? "text-gray-400"
-                : "text-black"
-            }`}
+            className={`h-12 w-full justify-self-center border-b border-b-[#919191] focus:outline-none `}
             value={formData.courseId}
             name="courseId"
             onChange={handleChange}
           >
-            <option selected disabled value="">
-              Select Course
+            <option selected value="">
+              All
             </option>
             {courses.map((course) => {
               return (
@@ -295,6 +303,14 @@ const PaymentStatus: React.FunctionComponent = () => {
           <button
             className="w-48 self-end rounded-lg bg-[#FCD56C] p-6 text-[#202B5D]"
             onClick={() => {
+              handlePrint();
+            }}
+          >
+            Print
+          </button>
+          <button
+            className="w-48 self-end rounded-lg bg-[#FCD56C] p-6 text-[#202B5D]"
+            onClick={() => {
               setFormData({
                 centreId: "",
                 courseId: "",
@@ -307,9 +323,15 @@ const PaymentStatus: React.FunctionComponent = () => {
             Clear
           </button>
         </div>
-        <div className="mt-4 flex w-4/5 flex-col justify-start gap-x-6 gap-y-4 self-center pb-4 lg:w-4/5 lg:flex-row">
+        <div
+          className="mt-4 flex w-4/5 flex-col justify-start gap-x-6 gap-y-4 self-center pb-4 lg:w-4/5 lg:flex-row"
+          ref={tableRef}
+        >
           {filteredPaymentData ? (
-            <PaymentTable payments={filteredPaymentData} />
+            <>
+              <PaymentTable payments={filteredPaymentData} />
+              <PrintablePaymentTable payments={filteredPaymentData} ref={tableRef}/>
+            </>
           ) : (
             <></>
           )}

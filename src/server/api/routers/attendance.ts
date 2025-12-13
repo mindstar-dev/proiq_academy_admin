@@ -6,11 +6,14 @@ export const attendanceRouter = createTRPCRouter({
   getDynamicattendance: protectedProcedure
     .input(GetAttendanceInput)
     .query(async ({ ctx, input }) => {
+      const isAllCourses = input.courseId === "All";
+
+      // 1️⃣ Fetch existing attendance
       const attendance = await ctx.prisma.attendance.findMany({
         where: {
           centreId: input.centreId,
-          courseId: input.courseId,
           date: input.date,
+          ...(isAllCourses ? {} : { courseId: input.courseId }),
         },
         select: {
           centreId: true,
@@ -18,70 +21,69 @@ export const attendanceRouter = createTRPCRouter({
           date: true,
           status: true,
           studentId: true,
+          centre: { select: { name: true } },
+          course: { select: { name: true } },
+          student: { select: { name: true, parentName: true } },
+        },
+      });
+
+      if (attendance.length > 0) {
+        return attendance;
+      }
+
+      // 2️⃣ Fetch students (ALL courses OR single course)
+      const students = await ctx.prisma.student.findMany({
+        where: {
+          centreId: input.centreId,
+          ...(isAllCourses
+            ? {}
+            : {
+                course: {
+                  some: {
+                    id: input.courseId,
+                  },
+                },
+              }),
+        },
+        select: {
+          studentId: true,
+          centreId: true,
+          name: true,
+          parentName: true,
+          course: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           centre: {
             select: {
               name: true,
             },
           },
-          course: {
-            select: { name: true },
-          },
-          student: {
-            select: { name: true, parentName: true },
-          },
         },
       });
 
-      if (!attendance || attendance.length === 0) {
-        const students = await ctx.prisma.student.findMany({
-          where: {
-            course: {
-              every: {
-                id: input.courseId,
-              },
-            },
-          },
-          select: {
-            studentId: true,
-            centreId: true,
-            name: true,
-            parentName: true,
-            course: {
-              where: {
-                id: input.courseId,
-              },
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            centre: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        });
-
-        const defaultAttendance = students.map((student) => ({
+      // 3️⃣ Create default ABSENT attendance
+      const defaultAttendance = students.flatMap((student) =>
+        (isAllCourses
+          ? student.course
+          : student.course.filter((c) => c.id === input.courseId)
+        ).map((course) => ({
           studentId: student.studentId,
           centreId: student.centreId,
-          courseId: input.courseId,
+          courseId: course.id,
           date: new Date(input.date),
           status: "ABSENT" as $Enums.AttendanceStatus,
           centre: { name: student.centre.name },
-          course: { name: student?.course[0]?.name },
+          course: { name: course.name },
           student: { name: student.name, parentName: student.parentName },
-        }));
+        }))
+      );
 
-        console.log("defaultAttendance", defaultAttendance);
-        return defaultAttendance;
-      }
-
-      console.log("attendance", attendance);
-      return attendance;
+      return defaultAttendance;
     }),
+
   getStaticattendance: protectedProcedure
     .input(GetAttendanceInput)
     .query(async ({ ctx, input }) => {
