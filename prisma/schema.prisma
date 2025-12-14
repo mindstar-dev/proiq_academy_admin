@@ -56,8 +56,6 @@ model Student {
     dob                        DateTime
     readdmission               Boolean
     readdmissionPaymentStatus  Boolean
-    newaddmission              Boolean
-    newAddmissionPaymentStatus Boolean
     readdmissionCourseId       String?
     status                     UserStatus
     centre                     Centre       @relation(fields: [centreId], references: [id], onDelete: Cascade)
