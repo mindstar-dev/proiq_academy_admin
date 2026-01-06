@@ -1,7 +1,8 @@
 import { Modal } from "@mui/material";
+import { set } from "date-fns";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { useRef, useState } from "react";
+import React, { MouseEventHandler, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import CustomDropdown from "~/components/customDropdown";
 import ErrorPopup from "~/components/errorPopup";
@@ -56,12 +57,12 @@ export default function StudentRegistration() {
   const [errorString, setErrorString] = useState("");
   const [isScuccess, setIsSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPrint, setIsPrint] = useState(false);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "Student Details",
   });
-
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -79,8 +80,9 @@ export default function StudentRegistration() {
   const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
     const dob = new Date(formData.dob);
     event.preventDefault();
-    if (file) {
-      try {
+
+    try {
+      if (file) {
         const imageUrl = await uploadFile(
           file,
           formData.name,
@@ -99,12 +101,23 @@ export default function StudentRegistration() {
               })
             : null;
         }
-      } catch (error) {
-        setErrorString("Failed to upload file");
+      } else {
+        if (!isProcessing) {
+          createStudent.mutate({ ...formData, imageUrl: "", dob: dob });
+          // handlePrint();
+        }
       }
-    } else {
-      if(!isProcessing){ createStudent.mutate({ ...formData, imageUrl: "", dob: dob }); handlePrint();}
+    } catch (error) {
+      setErrorString("Failed to upload file");
     }
+  };
+  const handleSaveAndPrint = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+    const dob = new Date(formData.dob);
+    setIsPrint(true);
+    handleSubmit(event as unknown as React.ChangeEvent<HTMLFormElement>);
   };
   const handleLocalFileSelection = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -132,12 +145,16 @@ export default function StudentRegistration() {
       setIsProcessing(true);
     },
     onSuccess() {
+      if(isPrint){
+        handlePrint();
+      }
       setFormData(initialFormState);
       setPreviousFormData(formData);
       setIsProcessing(false);
       setFile(null);
       setImage(null);
       setIsSuccess(true);
+      setIsPrint(false);
     },
   });
   const { status, data: session } = useSession();
@@ -392,26 +409,33 @@ export default function StudentRegistration() {
           >
             Save
           </button>
+          <button
+            type="button"
+            onClick={handleSaveAndPrint}
+            className="rounded bg-[#DCA200] px-8 py-3 text-white"
+          >
+            Save & Print
+          </button>
         </div>
         <div className="hidden">
-        <PrintableStudentCard
-          ref={printRef}
-          name={formData.name}
-          address={formData.address}
-          parentName={formData.parentName}
-          parentOccupation={formData.parentOccupation}
-          parentContactNumber1={formData.parentContactNumber1}
-          parentContactNumber2={formData.parentContactNumber2}
-          idProof={formData.idProof}
-          idProofType={formData.idProofType}
-          centreId={formData.centreId}
-          courseNames={formData.courseNames}
-          classDays={formData.classDays}
-          readdmission={formData.readdmission}
-          imageUrl={formData.imageUrl}
-          dob={formData.dob}
-        />
-      </div>
+          <PrintableStudentCard
+            ref={printRef}
+            name={formData.name}
+            address={formData.address}
+            parentName={formData.parentName}
+            parentOccupation={formData.parentOccupation}
+            parentContactNumber1={formData.parentContactNumber1}
+            parentContactNumber2={formData.parentContactNumber2}
+            idProof={formData.idProof}
+            idProofType={formData.idProofType}
+            centreId={formData.centreId}
+            courseNames={formData.courseNames}
+            classDays={formData.classDays}
+            readdmission={formData.readdmission}
+            imageUrl={formData.imageUrl}
+            dob={formData.dob}
+          />
+        </div>
         <Modal
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
