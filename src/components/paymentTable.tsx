@@ -3,6 +3,7 @@ import type React from "react";
 import { useRef, useState, useEffect } from "react";
 import PrintablePaymentCard from "./paymentPrintableCard";
 import { useReactToPrint } from "react-to-print";
+import { set } from "date-fns";
 interface Payment {
   student: {
     name: string;
@@ -54,28 +55,23 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
   const handleMouseUp = () => {
     setIsDragging(false);
   };
-  const handlePrint = useReactToPrint({
+
+    const handleReactPrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "Payment Receipt",
+    onAfterPrint: () => {
+      setSelectedPayment(null);
+    },
   });
 
-  const onPrint = (payment: Payment) => {
+  const handlePrint = async (payment: Payment) => {
     setSelectedPayment(payment);
+    setTimeout(() => {
+      handleReactPrint();
+    }, 0);
   };
 
-  useEffect(() => {
-    if (!selectedPayment) return;
-    const print = async () => {
-      try {
-        await handlePrint();
-      } catch (err) {
-        console.log("Print error: ", err);
-      } finally {
-        setSelectedPayment(null);
-      }
-    };
-    print();
-  }, [selectedPayment, handlePrint]);
+
 
   return (
     <div
@@ -154,8 +150,8 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
               </td>
               <td className="border border-[#FCD56C] p-1">
                 <button
-                  onClick={() => onPrint(payment)}
-                  className="text-white hover:underline bg-[#FCD56C] p-2 hover:shadow-xl rounded-md"
+                  onClick={() => handlePrint(payment)}
+                  className="rounded-md bg-[#FCD56C] p-2 text-white hover:underline hover:shadow-xl"
                 >
                   Print
                 </button>
@@ -165,19 +161,21 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
         </tbody>
       </table>
 
-      <PrintablePaymentCard
-        ref={printRef}
-        amount={selectedPayment?.amountPaid.toString() ?? ""}
-        centre={selectedPayment?.centre.name.toString() ?? ""}
-        months={selectedPayment?.paymentMonths ?? []}
-        name={selectedPayment?.student.name ?? ""}
-        parentName={selectedPayment?.student.parentName ?? ""}
-        paymentFor={selectedPayment?.paymentFor ?? ""}
-        status={selectedPayment?.status ?? ""}
-        studentId={selectedPayment?.student.studentId ?? ""}
-        subject={selectedPayment?.course.name ?? ""}
-        date={selectedPayment?.dateTime.toISOString().split("T")[0] ?? ""}
-      />
+      {selectedPayment && (
+        <PrintablePaymentCard
+          ref={printRef}
+          amount={selectedPayment?.amountPaid.toString() ?? ""}
+          centre={selectedPayment?.centre.name.toString() ?? ""}
+          months={selectedPayment?.paymentMonths ?? []}
+          name={selectedPayment?.student.name ?? ""}
+          parentName={selectedPayment?.student.parentName ?? ""}
+          paymentFor={selectedPayment?.paymentFor ?? ""}
+          status={selectedPayment?.status ?? ""}
+          studentId={selectedPayment?.student.studentId ?? ""}
+          subject={selectedPayment?.course.name ?? ""}
+          date={selectedPayment?.dateTime.toISOString().split("T")[0] ?? ""}
+        />
+      )}
     </div>
   );
 };

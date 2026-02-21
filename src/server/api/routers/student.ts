@@ -211,43 +211,34 @@ export const studentRouter = createTRPCRouter({
     .input(
       z.object({
         centreId: z.string({ required_error: "Centre Id can't be empty" }),
-        courseId: z.string({ required_error: "Centre Id can't be empty" }),
+        courseId: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const students = await ctx.prisma.student.findMany({
-        where: {
-          centre: {
-            id: input.centreId,
-          },
+      const select = {
+        centre: { select: { name: true } },
+        course: { select: { name: true } },
+        studentId: true,
+        name: true,
+        parentName: true,
+        readdmission: true,
+        readdmissionCourseId: true,
+      } as const;
 
-          course: {
-            some: {
-              id: input.courseId,
-            },
-          },
-        },
-        select: {
-          centre: {
-            select: {
-              name: true,
-            },
-          },
-          course: {
-            select: {
-              name: true,
-            },
-          },
-          studentId: true,
-          name: true,
-          parentName: true,
-          readdmission: true,
-          readdmissionCourseId: true,
-        },
-        orderBy: {
-          name: "asc",
-        },
+      const where: any = {
+        centre: { id: input.centreId },
+      };
+
+      if (input.courseId && input.courseId.trim() !== "") {
+        where.course = { some: { id: input.courseId } };
+      }
+
+      const students = await ctx.prisma.student.findMany({
+        where,
+        select,
+        orderBy: { name: "asc" },
       });
+
       return students;
     }),
   getAll: protectedProcedure.query(async ({ ctx }) => {

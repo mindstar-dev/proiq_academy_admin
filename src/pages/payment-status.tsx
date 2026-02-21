@@ -102,7 +102,6 @@ const PaymentStatus: React.FunctionComponent = () => {
           (!formData.paymentFor || payment.paymentFor === formData.paymentFor)
         );
       });
-      console.log("filteredData", filteredData);
       setFilteredPaymentData(filteredData);
     }
   }, [

@@ -32,10 +32,11 @@ const PrintablePaymentCard = forwardRef<HTMLDivElement, Props>(
     },
     ref
   ) => {
+    console.log("Rendering PrintablePaymentCard with props: ", { studentId, name, parentName, subject, centre, date, months, paymentFor, amount, status });
     return (
       <div
         ref={ref}
-        className="w-full bg-white p-8 text-black print:bg-white print:p-8 hidden"
+        className="w-full bg-white p-8 text-black print:bg-white print:p-8"
       >
         <h1 className="border-b pb-3 text-center text-2xl font-bold">
           Payment Receipt
