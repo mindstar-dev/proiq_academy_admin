@@ -56,7 +56,7 @@ const PaymentTable = ({ payments }: { payments: Payment[] }) => {
     setIsDragging(false);
   };
 
-    const handleReactPrint = useReactToPrint({
+  const handleReactPrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "Payment Receipt",
     onAfterPrint: () => {

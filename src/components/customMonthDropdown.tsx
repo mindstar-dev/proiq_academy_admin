@@ -1,53 +1,50 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface CustomDropdownProps {
   setSelectedValues: (months: Date[]) => void;
+  values?: Date[]; // 👈 make optional
   className?: string;
   placeHolder?: string;
 }
 
-interface MonthObject {
-  month: string;
-  date: Date;
-}
-
-const CustomMonthDropdown: React.FunctionComponent<CustomDropdownProps> = ({
+const CustomMonthDropdown: React.FC<CustomDropdownProps> = ({
   setSelectedValues,
+  values = [], // 👈 default to empty array
   className,
   placeHolder = "Select Months",
 }) => {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState<number>(currentYear);
-  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Compute months based on the selected year
-  const lastDaysOfMonths: Date[] = Array.from({ length: 12 }, (_, month) => {
-    return new Date(year, month + 1, 0);
+  /* ---------------- Generate Months ---------------- */
+  const monthObjects = Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(year, index + 1, 0);
+    return {
+      label: date.toLocaleString("default", { month: "long" }),
+      date,
+    };
   });
 
-  const monthObjects: MonthObject[] = lastDaysOfMonths.map((date) => ({
-    month: date.toLocaleString("default", { month: "long" }),
-    date,
-  }));
-
-  // Notify parent on change
-  useEffect(() => {
-    setSelectedValues(selectedDates);
-    console.log("Selected Dates:", selectedDates);
-  }, [selectedDates]);
-
+  /* ---------------- Handle Select ---------------- */
   const handleSelect = (monthIndex: number) => {
-    const newDate = new Date(year, monthIndex + 1, 0); // Last day of the selected month in selected year
+    const newDate = new Date(year, monthIndex + 1, 0);
 
-    setSelectedDates((prev) =>
-      prev.some((d) => d.getTime() === newDate.getTime())
-        ? prev.filter((d) => d.getTime() !== newDate.getTime())
-        : [...prev, newDate]
+    const exists = values.some(
+      (d) => d.getTime() === newDate.getTime()
     );
+
+    if (exists) {
+      setSelectedValues(
+        values.filter((d) => d.getTime() !== newDate.getTime())
+      );
+    } else {
+      setSelectedValues([...values, newDate]);
+    }
   };
 
+  /* ---------------- Outside Click ---------------- */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -59,26 +56,23 @@ const CustomMonthDropdown: React.FunctionComponent<CustomDropdownProps> = ({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <div
-      className={`relative w-full justify-self-center ${className} flex flex-col gap-x-4 self-center lg:grid lg:grid-cols-2`}
       ref={dropdownRef}
+      className={`relative w-full ${className ?? ""} flex flex-col gap-4 lg:grid lg:grid-cols-2`}
     >
       {/* Dropdown Button */}
       <div
-        className={`flex min-h-12 cursor-pointer items-center justify-between border-b border-b-[#919191]`}
+        className="flex min-h-12 cursor-pointer items-center justify-between border-b border-b-[#919191]"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span
-          className={`${
-            selectedDates.length > 0 ? "text-black" : "text-gray-500"
-          }`}
-        >
-          {selectedDates.length > 0
-            ? selectedDates
+        <span className={values.length ? "text-black" : "text-gray-500"}>
+          {values.length
+            ? [...values]
                 .sort((a, b) => a.getTime() - b.getTime())
                 .map((date) =>
                   date.toLocaleString("default", { month: "short" })
@@ -92,26 +86,23 @@ const CustomMonthDropdown: React.FunctionComponent<CustomDropdownProps> = ({
       {/* Year Input */}
       <input
         type="number"
-        placeholder="Select Year"
         min="1900"
         max="2100"
-        step="1"
         value={year}
         onChange={(e) => {
           const val = parseInt(e.target.value);
           setYear(isNaN(val) ? currentYear : val);
-          setSelectedDates([]);
+          setSelectedValues([]); // clear safely
         }}
-        className="h-12 w-full min-w-full justify-self-center border-b border-b-[#919191] pl-1 focus:outline-none lg:justify-self-end"
+        className="h-12 w-full border-b border-b-[#919191] pl-1 focus:outline-none"
       />
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute left-0 top-14 z-10 w-full rounded-md border bg-white shadow-md">
           {monthObjects.map((month, index) => {
-            const generatedDate = new Date(year, index + 1, 0);
-            const isChecked = selectedDates.some(
-              (d) => d.getTime() === generatedDate.getTime()
+            const isChecked = values.some(
+              (d) => d.getTime() === month.date.getTime()
             );
 
             return (
@@ -125,7 +116,7 @@ const CustomMonthDropdown: React.FunctionComponent<CustomDropdownProps> = ({
                   onChange={() => handleSelect(index)}
                   className="h-4 w-4"
                 />
-                {month.month}
+                {month.label}
               </label>
             );
           })}

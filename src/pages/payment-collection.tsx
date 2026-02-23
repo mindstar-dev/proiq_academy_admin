@@ -56,7 +56,7 @@ const PaymentCollection: React.FunctionComponent = () => {
     onSuccess() {
       setIsSuccess(true);
       setFormData({centreId: "",
-      courseId: "", amountPaid: '', paymentMonths: [] as Date[]} as PaymentCollectionForm);
+      courseId: "", amountPaid: '', paymentMonths: [] as Date[], paymentFor: '', } as PaymentCollectionForm);
     },
   });
   const handleChange = (
@@ -135,7 +135,7 @@ const PaymentCollection: React.FunctionComponent = () => {
             onChange={handleChange}
             value={formData.paymentFor}
           >
-            <option selected disabled value="">
+            <option selected value=''>
               Payment For
             </option>
             <option value="Course Fees" className="text-black">
@@ -183,9 +183,6 @@ const PaymentCollection: React.FunctionComponent = () => {
             name="courseId"
             onChange={handleChange}
           >
-            <option selected disabled value="">
-              Select Course
-            </option>
             <option selected disabled value="">
               Select Course
             </option>
@@ -237,6 +234,7 @@ const PaymentCollection: React.FunctionComponent = () => {
                 setSelectedValues={(dateArray) => {
                   setFormData({ ...formData, paymentMonths: dateArray });
                 }}
+                values={formData.paymentMonths}
               />
             )}
           </div>
@@ -249,7 +247,7 @@ const PaymentCollection: React.FunctionComponent = () => {
             name="status"
             onChange={handleChange}
           >
-            <option selected disabled>
+            <option selected value=''>
               Payment Type
             </option>
             <option value="PARTIAL" className="text-black">

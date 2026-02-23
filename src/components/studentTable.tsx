@@ -1,6 +1,8 @@
 import { $Enums } from "@prisma/client";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
+import PrintableStudentCard from "./studentPrintableCard";
 
 interface StudentData {
   course: {
@@ -49,6 +51,10 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(
+    null
+  );
+  const printRef = useRef<HTMLDivElement>(null);
 
   // Handle mouse down
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -70,6 +76,21 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
   // Handle mouse up / leave
   const handleMouseUp = () => {
     setIsDragging(false);
+  };
+
+  const handleReactPrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Student Details",
+    onAfterPrint: () => {
+      setSelectedStudent(null);
+    },
+  });
+
+  const handlePrint = async (student: StudentData) => {
+    setSelectedStudent(student);
+    setTimeout(() => {
+      handleReactPrint();
+    }, 0);
   };
 
   return (
@@ -128,7 +149,7 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
                     : "text-green-600"
                 }`}
               >
-                <td className="border p-2">{student.studentId}</td>
+                <td className="border p-2 cursor-pointer hover:underline" onClick={() => handlePrint(student)}>{student.studentId}</td>
                 <td
                   className={`border border-dashed p-2 ${
                     student.imageUrl.startsWith("http") ||
@@ -197,6 +218,23 @@ const StudentTable: React.FunctionComponent<CourseTableProps> = ({
           })}
         </tbody>
       </table>
+      {selectedStudent && <PrintableStudentCard
+        ref={printRef}
+        name={selectedStudent.name}
+        address={selectedStudent.address}
+        parentName={selectedStudent.parentName}
+        parentOccupation={selectedStudent.parentOccupation}
+        parentContactNumber1={selectedStudent.parentContactNumber1}
+        parentContactNumber2={selectedStudent.parentContactNumber2 ?? ''}
+        idProof={selectedStudent.idProof}
+        idProofType={selectedStudent.idProofType}
+        centreId={selectedStudent.centreId}
+        courseNames={selectedStudent.course.map((c) => c.name)}
+        classDays={selectedStudent.classDays}
+        readdmission={selectedStudent.readdmission}
+        imageUrl={selectedStudent.imageUrl}
+        dob={selectedStudent.dob.toDateString()}
+      />}
     </div>
   );
 };
