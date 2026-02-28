@@ -64,6 +64,25 @@ const PaymentCollection: React.FunctionComponent = () => {
   ) => {
     const { name, value } = e.target;
 
+    if (name === "studentId") {
+      const tempCourseName = students?.find((student) => student.studentId === value)?.course[0]?.name;
+      const tempCourseId = courses?.find((course) => course.name === tempCourseName)?.id;
+      setFormData((prev) => ({
+        ...prev,
+        studentId: value,
+        courseId: tempCourseId ?? "",
+      }));
+      return;
+    }
+    else if (name === "courseId") {
+      setFormData((prev) => ({
+        ...prev,
+        studentId: '',
+        courseId: value ?? "",
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
