@@ -1,6 +1,6 @@
 import { $Enums } from "@prisma/client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 
@@ -31,6 +31,51 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
   date,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [localData, setLocalData] = useState<attendanceData[]>(attendance);
+  // Handle mouse down
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!tableContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - tableContainerRef.current.offsetLeft);
+    setScrollLeft(tableContainerRef.current.scrollLeft);
+  };
+
+  // Handle mouse move
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !tableContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - tableContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Speed factor
+    tableContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // Handle mouse up / leave
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+
+    const matches = (item: attendanceData) =>
+      item.student.name.toLowerCase().includes(query);
+
+    const matched = attendance.filter(matches);
+    const unmatched = attendance.filter((item) => !matches(item));
+
+    if (matched.length === 0) {
+      return;
+    }
+
+    setLocalData([...matched, ...unmatched]);
+  }, [searchQuery]);
 
   return (
     <div className="p-6">
@@ -52,8 +97,17 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
         </h1>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <table className="min-w-full table-auto whitespace-nowrap">
+      <div
+        className={`w-full overflow-x-auto ${
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        }   select-none`}
+        ref={tableContainerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <table className="min-w-full table-auto whitespace-nowrap ">
           <thead>
             <tr className="border-b border-dashed">
               <th className="border-b border-l border-r border-dashed p-2">
@@ -72,10 +126,10 @@ const AttendanceTable: React.FunctionComponent<AttendanceTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-transparent">
-            {attendance?.map((student, index) => (
+            {localData?.map((student, index) => (
               <tr key={index} className="border-b border-dashed text-center">
                 <td className="border border-dashed p-2">
-                  {student.studentId.slice(0, 8)}
+                  {student.studentId}
                 </td>
                 <td className="border border-dashed p-2">
                   {student.student.name}

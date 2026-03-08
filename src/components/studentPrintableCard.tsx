@@ -5,7 +5,7 @@ import bg from "../../public/student-print-bg.jpg";
 import React, { forwardRef } from "react";
 
 export interface Props {
-  id?:string;
+  id?: string;
   name: string;
   address: string;
   parentName: string;
@@ -41,96 +41,90 @@ const PrintableStudentCard = forwardRef<HTMLDivElement, Props>(
       imageUrl,
       dob,
       id,
-      centreName
+      centreName,
     },
     ref
   ) => {
     return (
       <div
+        className="m-0 h-[1123px] max-h-[1123px] w-[793px] max-w-[793px] overflow-hidden bg-white p-0"
         ref={ref}
-        className="w-full bg-white p-8 text-black print:bg-white print:p-8"
       >
-        <div className="fixed z-10 max-h-full w-full">
-          <Image
-            src={bg}
-            alt="print bg"
-            className="fixed z-0 max-h-full w-full "
-          />
-          <div className="z-10 mt-6 grid grid-cols-3 gap-2 left-20 top-56 relative">
-            {/* LEFT SECTION */}
-            <div className="z-10 col-span-2 space-y-2">
-              <p className="text-md">
-                <strong>Id:</strong> {id}
-              </p>
-              <p className="text-md">
-                <strong>Full Name:</strong> {name}
-              </p>
-              <p className="text-md">
-                <strong>Date of Birth:</strong> {dob}
-              </p>
-              <p className="text-md">
-                <strong>ID Proof Type:</strong> {idProofType}
-              </p>
-              <p className="text-md">
-                <strong>ID Proof Number:</strong> {idProof}
-              </p>
-              <p className="text-md"> 
-                <strong>Centre:</strong> {centreName}
-              </p>
-
-              <p className="text-md">
-                <strong>Courses:</strong>{" "}
-                {courseNames && courseNames.length > 0
-                  ? courseNames.join(", ")
-                  : "N/A"}
-              </p>
-
-              <p className="text-md">
-                <strong>Class Days:</strong>{" "}
-                {classDays && classDays.length > 0
-                  ? classDays.join(", ")
-                  : "N/A"}
-              </p>
-
-              <p className="text-md">
-                <strong>Re-admission:</strong> {readdmission ? "Yes" : "No"}
-              </p>
-              <p className="text-md">
-                <strong>Parent Name:</strong> {parentName}
-              </p>
-              <p className="text-md">
-                <strong>Address:</strong> {address}
-              </p>
-              <p className="text-md">
-                <strong>Parent Occupation:</strong> {parentOccupation}
-              </p >
-              <p className="text-md">
-                <strong>Contact Number 1:</strong> {parentContactNumber1}
-              </p>
-
-              {parentContactNumber2 && (
-                <p className="text-md">
-                  <strong>Alternative Contact:</strong> {parentContactNumber2}
-                </p>
-              )}
+        <img
+          src="student-print-bg.jpg"
+          alt="A4 Print"
+          className="absolute inset-0 z-0 h-full w-full object-cover"
+        />
+        <div className="relative z-10 flex h-full flex-col px-20 pt-[260px]">
+          <div className="grid grid-cols-4 grid-rows-[15] text-lg">
+            <div className="col-span-3 py-1 pl-2 ">
+              <strong>Id:</strong> {id}
             </div>
-
-            {/* PHOTO SECTION */}
-            <div className="z-10 flex justify-center relative right-40">
-              <div className="flex h-48 w-40 items-center justify-center overflow-hidden rounded border bg-gray-100">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="Student Photo"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-sm text-gray-500">No Photo</span>
-                )}
-              </div>
+            <img
+              src={imageUrl}
+              alt="Student Photo"
+              className="col-start-4 row-start-1 row-end-[15] h-fit w-fit m-4 mr-0 justify-self-end"
+            />
+            <div className="col-span-3 pl-2">
+              <strong>Full Name:</strong> {name}
             </div>
+            <div className="col-span-3 pl-2">
+              <strong>Date Of Birth:</strong> {dob}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>ID Proof Type:</strong> {idProofType}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>ID Proof Number:</strong> {idProof}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>Centre Name:</strong> {centreName}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>Courses:</strong> {courseNames}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>Class Days:</strong> {classDays}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>Re-Admission:</strong> {readdmission}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>Parent Name:</strong> {parentName}
+            </div>
+            <div className="col-span-4 pl-2">
+              <strong>Address:</strong> {address}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>Parent Occupation:</strong> {parentOccupation}
+            </div>
+            <div className="col-span-3 pl-2">
+              <strong>Contact Number:</strong> {parentContactNumber1}
+            </div>
+            {parentContactNumber2 && <div className="col-span-3 pl-2">
+              <strong>Alternative Contact Number:</strong> {parentContactNumber2}
+            </div>}
           </div>
         </div>
+        <style jsx global>{`
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+
+          @media print {
+            html,
+            body {
+              margin: 0;
+              padding: 0;
+            }
+
+            .print-area,
+            .print-area * {
+              visibility: visible;
+            }
+          }
+        `}</style>
       </div>
     );
   }

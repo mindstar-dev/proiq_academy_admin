@@ -41,11 +41,18 @@ interface PaymentData {
   paymentMonths: Date[];
   dateTime: Date;
   id: string;
-
 }
 const PaymentStatus: React.FunctionComponent = () => {
   const [errorString, setErrorString] = useState("");
   const tableRef = useRef<HTMLDivElement>(null);
+  const startingMonthRef = useRef<HTMLInputElement>(null);
+  const endingMonthRef = useRef<HTMLInputElement>(null);
+
+  const handleStartingMonthLabelClick = () => {
+    console.log("Label clicked");
+    startingMonthRef.current?.showPicker?.();
+    startingMonthRef.current?.focus();
+  };
 
   const [formData, setFormData] = useState<PaymentStatusForm>({
     centreId: "",
@@ -119,7 +126,6 @@ const PaymentStatus: React.FunctionComponent = () => {
   const handlePrint = useReactToPrint({
     contentRef: tableRef,
     documentTitle: "Payment Receipt",
-    
   });
   if (status == "unauthenticated") {
     return (
@@ -237,20 +243,24 @@ const PaymentStatus: React.FunctionComponent = () => {
           </select>
           <div className="relative w-full">
             <label
-              htmlFor="startingMonth"
-              className={`absolute left-1 top-1/2 -translate-y-1/2 transform text-gray-400 transition-all ${
+              className={`pointer-events-none absolute left-1 top-1/2 z-10 w-full -translate-y-1/2 transform text-gray-400 transition-all ${
                 formData.startingMonth
                   ? "top-2 text-xs text-black"
                   : "bg-white text-base"
               }`}
+              onClick={handleStartingMonthLabelClick}
             >
               {formData.startingMonth ? "" : "Select Starting Month"}
             </label>
             <input
+              ref={startingMonthRef}
               id="startingMonth"
               type="month"
               name="startingMonth"
               onChange={handleChange}
+              onClick={() => {
+                console.log("clicked inp");
+              }}
               value={formData.startingMonth}
               className="h-12 w-full border-b border-b-[#919191] pl-1 focus:outline-none"
             />
@@ -333,7 +343,10 @@ const PaymentStatus: React.FunctionComponent = () => {
           {filteredPaymentData ? (
             <>
               <PaymentTable payments={filteredPaymentData} />
-              <PrintablePaymentTable payments={filteredPaymentData} ref={tableRef}/>
+              <PrintablePaymentTable
+                payments={filteredPaymentData}
+                ref={tableRef}
+              />
             </>
           ) : (
             <></>
