@@ -242,8 +242,8 @@ const PaymentStatus: React.FunctionComponent = () => {
           </select>
           <div className="relative w-full">
             <label
-              className={`pointer-events-none absolute left-1 top-1/2 z-10 w-full -translate-y-1/2 transform text-gray-400 transition-all ${
-                formData.startingMonth
+              className={`text-g ray-400 absolute left-1 top-1/2 -translate-y-1/2  transform text-gray-400  transition-all ${
+                formData.endingMonth
                   ? "top-2 text-xs text-black"
                   : "bg-white text-base"
               }`}
