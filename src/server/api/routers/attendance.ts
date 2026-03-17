@@ -35,6 +35,7 @@ export const attendanceRouter = createTRPCRouter({
       const students = await ctx.prisma.student.findMany({
         where: {
           centreId: input.centreId,
+            status: 'CONTINUE',
           ...(isAllCourses
             ? {}
             : {

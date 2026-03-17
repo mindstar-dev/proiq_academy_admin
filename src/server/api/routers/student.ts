@@ -227,6 +227,7 @@ export const studentRouter = createTRPCRouter({
 
       const where: any = {
         centre: { id: input.centreId },
+        status: $Enums.UserStatus.CONTINUE,
       };
 
       if (input.courseId && input.courseId.trim() !== "") {
@@ -243,6 +244,117 @@ export const studentRouter = createTRPCRouter({
     }),
   getAll: protectedProcedure.query(async ({ ctx }) => {
     const students = await ctx.prisma.student.findMany({
+      where: {
+        status: $Enums.UserStatus.CONTINUE,
+      },
+      select: {
+        studentId: true,
+        address: true,
+        centre: {
+          select: {
+            name: true,
+          },
+        },
+        classDays: true,
+        dob: true,
+        status: true,
+        course: {
+          select: {
+            name: true,
+          },
+        },
+
+        idProof: true,
+        idProofType: true,
+        imageUrl: true,
+        name: true,
+        parentContactNumber1: true,
+        parentContactNumber2: true,
+        parentName: true,
+        parentOccupation: true,
+        centreId: true,
+        readdmission: true,
+        readdmissionCourseId: true,
+        readdmissionPaymentStatus: true,
+        payments: {
+          take: 1, // Get only the most recent payment
+          orderBy: {
+            paymentDate: "desc", // Sort payments by date (newest first)
+          },
+          select: {
+            amountPaid: true,
+            paymentDate: true,
+            paymentFor: true,
+            paymentMonths: true,
+            dateTime: true,
+          },
+        },
+      },
+      orderBy: {
+        studentId: "asc",
+      },
+    });
+    return students;
+  }),
+  getAllDiscountinued: protectedProcedure.query(async ({ ctx }) => {
+    const students = await ctx.prisma.student.findMany({
+      where: {
+        status: $Enums.UserStatus.DISCONTINUE,
+      },
+      select: {
+        studentId: true,
+        address: true,
+        centre: {
+          select: {
+            name: true,
+          },
+        },
+        classDays: true,
+        dob: true,
+        status: true,
+        course: {
+          select: {
+            name: true,
+          },
+        },
+
+        idProof: true,
+        idProofType: true,
+        imageUrl: true,
+        name: true,
+        parentContactNumber1: true,
+        parentContactNumber2: true,
+        parentName: true,
+        parentOccupation: true,
+        centreId: true,
+        readdmission: true,
+        readdmissionCourseId: true,
+        readdmissionPaymentStatus: true,
+        payments: {
+          take: 1, // Get only the most recent payment
+          orderBy: {
+            paymentDate: "desc", // Sort payments by date (newest first)
+          },
+          select: {
+            amountPaid: true,
+            paymentDate: true,
+            paymentFor: true,
+            paymentMonths: true,
+            dateTime: true,
+          },
+        },
+      },
+      orderBy: {
+        studentId: "asc",
+      },
+    });
+    return students;
+  }),
+  getAllCompleted: protectedProcedure.query(async ({ ctx }) => {
+    const students = await ctx.prisma.student.findMany({
+      where: {
+        status: $Enums.UserStatus.DISCONTINUE,
+      },
       select: {
         studentId: true,
         address: true,

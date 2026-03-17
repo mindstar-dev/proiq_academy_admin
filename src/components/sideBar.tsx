@@ -130,6 +130,22 @@ const SideBar: React.FunctionComponent = () => {
               >
                 User Creation
               </Link>
+              <Link
+                href="completed-students"
+                className={`relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999] ${
+                  pathName.includes("completed-students") ? "rounded-full bg-[#FABA09]" : ""
+                }`}
+              >
+                Course Completed Students
+              </Link>
+              <Link
+                href="discontinued-students"
+                className={`relative flex gap-3 py-3 pl-5 hover:rounded-[45px] hover:bg-[#FABA0999] ${
+                  pathName.includes("discontinued") ? "rounded-full bg-[#FABA09]" : ""
+                }`}
+              >
+                Discountinued Students
+              </Link>
             </li>
           </ul>
         </nav>

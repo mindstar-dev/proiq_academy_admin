@@ -16,6 +16,7 @@ interface PaymentStatusForm {
   paymentFor: string;
   startingMonth: string;
   endingMonth: string;
+  paymentDate: string;
 }
 interface PaymentData {
   student: {
@@ -47,10 +48,20 @@ const PaymentStatus: React.FunctionComponent = () => {
   const tableRef = useRef<HTMLDivElement>(null);
   const startingMonthRef = useRef<HTMLInputElement>(null);
   const endingMonthRef = useRef<HTMLInputElement>(null);
+  const paymentDateRef = useRef<HTMLInputElement>(null);
 
   const handleStartingMonthLabelClick = () => {
     startingMonthRef.current?.showPicker?.();
     startingMonthRef.current?.focus();
+  };
+
+  const handleEndingMonthLabelClick = () => {
+    endingMonthRef.current?.showPicker?.();
+    endingMonthRef.current?.focus();
+  };
+  const handlePayementDateLabelClick = () => {
+    paymentDateRef.current?.showPicker?.();
+    paymentDateRef.current?.focus();
   };
 
   const [formData, setFormData] = useState<PaymentStatusForm>({
@@ -58,6 +69,7 @@ const PaymentStatus: React.FunctionComponent = () => {
     courseId: "",
     startingMonth: "",
     endingMonth: "",
+    paymentDate: "",
   } as PaymentStatusForm);
   const [filteredPaymentData, setFilteredPaymentData] =
     useState<PaymentData[]>();
@@ -102,14 +114,19 @@ const PaymentStatus: React.FunctionComponent = () => {
 
   useEffect(() => {
     if (paymentData) {
-      // Filter the payment data whenever the form data changes
       const filteredData = paymentData.filter((payment) => {
+        const paymentDateMatches =
+          !formData.paymentDate ||
+          new Date(payment.dateTime).toISOString().split('T')[0] ===
+            new Date(formData.paymentDate).toISOString().split('T')[0];
+
         return (
           (!formData.courseId || payment.course.id === formData.courseId) &&
           (!formData.centreId || payment.centre.id === formData.centreId) &&
           (!formData.studentId ||
             payment.student.studentId === formData.studentId) &&
-          (!formData.paymentFor || payment.paymentFor === formData.paymentFor)
+          (!formData.paymentFor || payment.paymentFor === formData.paymentFor) &&
+          paymentDateMatches
         );
       });
       setFilteredPaymentData(filteredData);
@@ -120,6 +137,7 @@ const PaymentStatus: React.FunctionComponent = () => {
     formData.studentId,
     formData.startingMonth,
     formData.paymentFor,
+    formData.paymentDate,
     paymentData,
   ]);
   const handlePrint = useReactToPrint({
@@ -269,10 +287,12 @@ const PaymentStatus: React.FunctionComponent = () => {
                   ? "top-2 text-xs text-black"
                   : "bg-white text-base"
               }`}
+              onClick={handleStartingMonthLabelClick}
             >
               {formData.endingMonth ? "" : "Select Ending Month"}
             </label>
             <input
+              ref={endingMonthRef}
               placeholder="Select Ending Month"
               type="month"
               name="endingMonth"
@@ -307,6 +327,27 @@ const PaymentStatus: React.FunctionComponent = () => {
               );
             })}
           </select>
+          <div className="relative w-full">
+            <label
+              className={`text-g ray-400 absolute left-1 top-1/2 -translate-y-1/2  transform text-gray-400  transition-all ${
+                formData.paymentDate
+                  ? "top-2 text-xs text-black"
+                  : "bg-white text-base"
+              }`}
+              onClick={handlePayementDateLabelClick}
+            >
+              {formData.paymentDate ? "" : "Select Payment Date"}
+            </label>
+            <input
+              ref={paymentDateRef}
+              id="paymentDate"
+              type="date"
+              name="paymentDate"
+              onChange={handleChange}
+              value={formData.paymentDate}
+              className="h-12 w-full border-b border-b-[#919191] pl-1 focus:outline-none"
+            />
+          </div>
         </div>
         <div className="col-span-2 mt-4 flex w-4/5 flex-col justify-end gap-x-6 gap-y-4 self-center  lg:flex-row">
           <button
@@ -321,9 +362,13 @@ const PaymentStatus: React.FunctionComponent = () => {
             className="w-48 self-end rounded-lg bg-[#FCD56C] p-6 text-[#202B5D]"
             onClick={() => {
               setFormData({
+                studentId: "",
                 centreId: "",
                 courseId: "",
+                paymentFor: "",
                 startingMonth: "",
+                endingMonth: "",
+                paymentDate: "",
               } as PaymentStatusForm);
               setFilteredPaymentData(undefined);
             }}
